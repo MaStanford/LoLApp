@@ -1,4 +1,0 @@
-LoLApp
-======
-
-App for LoL
