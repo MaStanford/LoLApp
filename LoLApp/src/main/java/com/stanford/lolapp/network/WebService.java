@@ -1,16 +1,5 @@
 package com.stanford.lolapp.network;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.http.client.methods.HttpRequestBase;
-import org.json.JSONObject;
-
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,35 +13,132 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 
+import org.apache.http.client.methods.HttpRequestBase;
+import org.json.JSONObject;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+
 public class WebService /* extends IntentService */ {
 
-    private static final String TAG = "WebService";
+    private static final String TAG                             = "WebService";
 
-    public static final String API_KEY  = "b2bf733d-dbb0-47c1-a0c4-f71791727277";
-    private static final String PARAM_API_KEY = "api_key";
+    public static final String API_KEY                          = "b2bf733d-dbb0-47c1-a0c4-f71791727277";
+    private static final String PARAM_API_KEY                   = "api_key";
 
     // host names
-    public static final String PRODUCTION_HOSTNAME = "prod.api.pvp.net";
-    public static final String PRODUCTION_API_PREFIX = "/api/lol";
-    public static final String PRODUCTION_CHAMPION_API_VER = "/v1.2";
-    public static final String PRODUCTION_GAMES_API_VER = "/v1.3";
-    public static final String PRODUCTION_LEAGUE_API_VER = "/v1.3";
-    public static final String PRODUCTION_STATIC_API_VER = "/v1.2";
-    public static final String PRODUCTION_STATS_API_VER = "/v1.3";
-    public static final String PRODUCTION_SUMMONER_API_VER = "/v1.4";
-    public static final String PRODUCTION_TEAM_API_VER = "/v2.2";
-    public static final String PRODUCTION_STATIC = "/static-data";
+    public static final String PRODUCTION_HOSTNAME              = "prod.api.pvp.net";
+    public static final String PRODUCTION_API_PREFIX            = "/api/lol";
+    public static final String PRODUCTION_CHAMPION_API_VER      = "/v1.2";
+    public static final String PRODUCTION_GAMES_API_VER         = "/v1.3";
+    public static final String PRODUCTION_LEAGUE_API_VER        = "/v1.3";
+    public static final String PRODUCTION_STATIC_API_VER        = "/v1.2";
+    public static final String PRODUCTION_STATS_API_VER         = "/v1.3";
+    public static final String PRODUCTION_SUMMONER_API_VER      = "/v1.4";
+    public static final String PRODUCTION_TEAM_API_VER          = "/v2.2";
+    public static final String PRODUCTION_STATIC                = "/static-data";
+
+    // Image paths
+    public static final String PROFILE_ICONS                    = "http://ddragon.leagueoflegends.com/cdn/4.4.3/img/profileicon/";
+    public static final String CHAMPIONS_ICONS                  = "http://ddragon.leagueoflegends.com/cdn/4.4.3/img/champion/";
+    public static final String PASSIVES_ICONS                   = "http://ddragon.leagueoflegends.com/cdn/4.4.3/img/passive/";
+    public static final String CHAMPION_ABILITY_ICONS           = "http://ddragon.leagueoflegends.com/cdn/4.4.3/img/spell/";
+    public static final String SUMMONER_SPELL_ICONS             = "http://ddragon.leagueoflegends.com/cdn/4.4.3/img/spell/";
+    public static final String ITEM_ICONS                       = "http://ddragon.leagueoflegends.com/cdn/4.4.3/img/item/";
+    public static final String MASTERY_ICONS                    = "http://ddragon.leagueoflegends.com/cdn/4.4.3/img/mastery/";
+    public static final String RUNE_ICONS                       = "http://ddragon.leagueoflegends.com/cdn/4.4.3/img/rune/";
+    public static final String SPRITE_ICONS                     = "http://ddragon.leagueoflegends.com/cdn/4.4.3/img/sprite/";
+
+    //Service names
+    public static final int SERVICE_GET_CHAMPION_ID             = 0;
+    public static final int SERVICE_GET_ALL_CHAMPION_IDS        = 1;
+    public static final int SERVICE_GET_CHAMPION_DATA           = 2;
+    public static final int SERVICE_GET_ALL_CHAMPION_DATA       = 3;
+    public static final int SERVICE_LOGIN                       = 4;
+    public static final int SERVICE_SIGN_UP                     = 5;
+    public static final int SERVICE_LOG_OUT                     = 6;
 
     // Required parameter that we set on almost every service call
-    public static final String PARAM_REQUIRED_AUTH_TOKEN = "authToken";
+    public static final String PARAM_REQUIRED_AUTH_TOKEN        = "authToken";
+    public static final String PARAM_REQUIRED_LOCATION          = "location";
+    public static final String PARAM_REQUIRED_LOCALE            = "locale";
 
     // Optional parameters available for pretty much every service call
-    private static final String PARAM_OPTIONAL_FORMAT = "format";
-    private static final String FORMAT_JSON = "json";
-    private static final String PARAM_OPTIONAL_CALLBACK = "callback";
-    private static final String PARAM_OPTIONAL_RETURNHTML = "returnHTML";
+    private static final String PARAM_OPTIONAL_FORMAT           = "format";
+    private static final String FORMAT_JSON                     = "json";
+    private static final String PARAM_OPTIONAL_CALLBACK         = "callback";
+    private static final String PARAM_OPTIONAL_RETURNHTML       = "returnHTML";
 
-    private static final Integer SOCKET_TIMEOUT_MS = 15000;
+    private static final Integer SOCKET_TIMEOUT_MS              = 15000;
+
+    //Enum for location
+    public enum location {
+        br("/br"),
+        eune("/eune"),
+        euw("/euw"),
+        kr("/kr"),
+        lan("/lan"),
+        las("/las"),
+        na("/na"),
+        oce("/oce"),
+        ru("/ru"),
+        tr("/tr");
+        private String mLocation = "";
+
+        location(String location) {
+            this.mLocation = location;
+        }
+
+        public String getLocation() {
+            return this.mLocation;
+        }
+
+    }
+
+    //Enum for locale
+    public enum locale {
+        en_US("en_US"),
+        es_ES("es_ES");
+        private String mLocale = "";
+
+        locale(String locale) {
+            this.mLocale = locale;
+        }
+
+        public String getLocale() {
+            return this.mLocale;
+        }
+    }
+
+    //Enum for ChampData parameter
+    public enum ChampData {
+        all("all"),
+        allytips("allytips"),
+        altimages("altimages"),
+        blurb("blurb"),
+        enemytips("enemytips"),
+        image("image"),
+        info("info"),
+        lore("lore"),
+        partype("partype"),
+        passive("passive"),
+        recommended("recommended"),
+        skins("skins"),
+        spells("spells"),
+        stats("stats"),
+        tags("tags");
+        private String mData = "";
+
+        ChampData(String data) {
+            this.mData = data;
+        }
+
+        public String getData() {
+            return this.mData;
+        }
+    }
 
 
     /**
@@ -60,19 +146,17 @@ public class WebService /* extends IntentService */ {
      */
     public static class WebserviceRequest {
         protected boolean mRequestTypeSecure = true;
-        protected String mServiceName;
+        protected int mServiceName;
         protected String mServiceUri;
-        protected String mLocation;
         protected int mRequestMethod;
         protected String mHostName;
 
         protected List<String> mRequiredParams = new ArrayList<String>();
         protected List<String> mOptionalParams = createDefaultOptionalParams();
 
-        public WebserviceRequest(String serviceName, String serviceUri, String location) {
+        public WebserviceRequest(int serviceName, String serviceUri) {
             mServiceName = serviceName;
             mServiceUri = serviceUri;
-            mLocation = location;
         }
 
         public static List<String> createDefaultOptionalParams() {
@@ -85,7 +169,7 @@ public class WebService /* extends IntentService */ {
             return mRequestMethod;
         }
 
-        public String getServiceName() {
+        public int getServiceName() {
             return mServiceName;
         }
 
@@ -117,24 +201,17 @@ public class WebService /* extends IntentService */ {
             return mRequiredParams.contains(PARAM_REQUIRED_AUTH_TOKEN);
         }
 
-        public String getLocation() {
-
-            return mLocation;
-
-        }
-
         public Boolean areParamsValid(Bundle params) {
+            // make certain all required params are present
+            for (String param : mRequiredParams) {
+                if (!params.containsKey(param)) {
+                    return false;
+                }
+            }
+
+            // TODO confirm that all params are in required or optional
+
             return true;
-//            // make certain all required params are present
-//            for (String param : mRequiredParams) {
-//                if (!params.containsKey(param)) {
-//                    return false;
-//                }
-//            }
-//
-//            // TODO confirm that all params are in required or optional
-//
-//            return true;
         }
 
         public VolleyError getClientErrorObject(NetworkResponse networkResponse) {
@@ -144,8 +221,8 @@ public class WebService /* extends IntentService */ {
 
     public static class LoLAppWebserviceRequest extends WebserviceRequest {
 
-        public LoLAppWebserviceRequest(String serviceName, String serviceUri, String location) {
-            super(serviceName, serviceUri, location);
+        public LoLAppWebserviceRequest(int serviceName, String serviceUri) {
+            super(serviceName, serviceUri);
             mRequestMethod = Request.Method.GET;
             mHostName = PRODUCTION_HOSTNAME;
         }
@@ -177,8 +254,8 @@ public class WebService /* extends IntentService */ {
         public static final String APP_KEY = "internalemailuse";
         public static final String APP_SECRET = "internalemailuse";
 
-        public AuthLogin(String location) {
-            super("authLogin", "/auth/login", location);
+        public AuthLogin() {
+            super(SERVICE_LOGIN, "/auth/login");
 
             mRequiredParams.add(PARAM_REQUIRED_APP_KEY);
             mRequiredParams.add(PARAM_REQUIRED_USERNAME);
@@ -199,11 +276,8 @@ public class WebService /* extends IntentService */ {
         public static final String PARAM_REQUIRED_SIGNATURE = "signature";
         public static final String PARAM_OPTIONAL_TIMEZONE = "timezone";
 
-        public static final String APP_KEY = "internalemailuse";
-        public static final String APP_SECRET = "internalemailuse";
-
-        public CreateUser(String location) {
-            super("createUser", "/auth/createuser", location);
+        public CreateUser() {
+            super(SERVICE_SIGN_UP, "/auth/createuser");
 
             mRequiredParams.add(PARAM_REQUIRED_APP_KEY);
             mRequiredParams.add(PARAM_REQUIRED_USERNAME);
@@ -218,8 +292,8 @@ public class WebService /* extends IntentService */ {
      */
     public static class GetAllChampionIds extends LoLAppWebserviceRequest {
 
-        public GetAllChampionIds(String location) {
-            super("champions", "/champion", location);
+        public GetAllChampionIds() {
+            super(SERVICE_GET_ALL_CHAMPION_IDS, "/champion");
         }
     }
 
@@ -228,8 +302,9 @@ public class WebService /* extends IntentService */ {
      */
     public static class GetChampionId extends LoLAppWebserviceRequest {
 
-        public GetChampionId(String location, String championID) {
-            super("champions", "/champion/" + championID, location);
+
+        public GetChampionId(String championID) {
+            super(SERVICE_GET_CHAMPION_ID, "/champion/" + championID);
 
         }
     }
@@ -239,14 +314,29 @@ public class WebService /* extends IntentService */ {
      */
     public static class GetStaticChampion extends LoLAppWebserviceRequest {
 
-        public static final String PARAM_LOCALE     = "locale";
-        public static final String PARAM_DATA       = "champData";
-        //TODO: MAke a list of all the PARAMs
-        //TODO: Make a structure for all the different values such as en_US
+        public static final String PARAM_DATA = "champData";
 
-        public GetStaticChampion(String location, String championID) {
-            super("getChampion", "/champion/" + championID, location);
-            mOptionalParams.add(PARAM_LOCALE);
+
+        public GetStaticChampion(int championID) {
+            super(SERVICE_GET_CHAMPION_DATA, "/champion/" + championID);
+            mRequiredParams.add(PARAM_REQUIRED_LOCATION);
+            mRequiredParams.add(PARAM_REQUIRED_LOCALE);
+            mOptionalParams.add(PARAM_DATA);
+        }
+    }
+
+    /**
+     * Get a list of all the champions
+     */
+    public static class GetStaticChampions extends LoLAppWebserviceRequest {
+
+        public static final String PARAM_DATA = "champData";
+
+
+        public GetStaticChampions() {
+            super(SERVICE_GET_ALL_CHAMPION_DATA, "/champion");
+            mRequiredParams.add(PARAM_REQUIRED_LOCATION);
+            mRequiredParams.add(PARAM_REQUIRED_LOCALE);
             mOptionalParams.add(PARAM_DATA);
         }
     }
@@ -259,9 +349,14 @@ public class WebService /* extends IntentService */ {
             final Response.Listener<JSONObject> successListener,
             final Response.ErrorListener errorListener) {
 
+        //Check the location in the bundle.  If no location, then NA is default.
+        String mLocation = "/na";
+        if (requestParams != null && requestParams.containsKey(PARAM_REQUIRED_LOCATION))
+            mLocation = requestParams.getString(PARAM_REQUIRED_LOCATION);
+
         //Params, api key needs to be first I think
         Bundle params = new Bundle();
-        params.putString(PARAM_API_KEY,API_KEY);
+        params.putString(PARAM_API_KEY, API_KEY);
         if (requestParams != null) {
             params.putAll(requestParams);
         }
@@ -282,7 +377,7 @@ public class WebService /* extends IntentService */ {
                         hostName,
                         PRODUCTION_API_PREFIX,
                         PRODUCTION_STATIC,
-                        serviceRequest.getLocation(),
+                        mLocation,
                         PRODUCTION_STATIC_API_VER,
                         uriString)
         );
@@ -336,10 +431,18 @@ public class WebService /* extends IntentService */ {
             final Response.Listener<JSONObject> successListener,
             final Response.ErrorListener errorListener) {
 
-        // Get params
-        Bundle params = requestParams;
-        if (params == null) {
-            params = new Bundle();
+        String API_VERSION = "";
+
+        //Check the location in the bundle.  If no location, then NA is default.
+        String mLocation = "/na";
+        if (requestParams != null && requestParams.containsKey(PARAM_REQUIRED_LOCATION))
+            mLocation = requestParams.getString(PARAM_REQUIRED_LOCATION);
+
+        //Params, api key needs to be first I think
+        Bundle params = new Bundle();
+        params.putString(PARAM_API_KEY, API_KEY);
+        if (requestParams != null) {
+            params.putAll(requestParams);
         }
 
         // validate params
@@ -349,12 +452,37 @@ public class WebService /* extends IntentService */ {
             return;
         }
 
+        //Check to see what request it is
+        switch(serviceRequest.getServiceName()){
+            case SERVICE_GET_ALL_CHAMPION_DATA:
+                break;
+            case SERVICE_GET_ALL_CHAMPION_IDS:
+                API_VERSION = PRODUCTION_CHAMPION_API_VER;
+                break;
+            case SERVICE_GET_CHAMPION_DATA:
+                break;
+            case SERVICE_GET_CHAMPION_ID:
+                API_VERSION = PRODUCTION_CHAMPION_API_VER;
+                break;
+            case SERVICE_LOG_OUT:
+                break;
+            case SERVICE_LOGIN:
+                break;
+            case SERVICE_SIGN_UP:
+                break;
+            default:
+                break;
+        }
+
         String hostName = serviceRequest.getHostName();
         String uriString = serviceRequest.getServiceUri();
 
-        Uri uri = Uri.parse(String.format("%s://%s%s",
+        Uri uri = Uri.parse(String.format("%s://%s%s%s%s%s",
                         serviceRequest.getRequestTypeSecure() ? "https" : "http",
                         hostName,
+                        PRODUCTION_API_PREFIX,
+                        mLocation,
+                        API_VERSION,
                         uriString)
         );
 
@@ -395,16 +523,6 @@ public class WebService /* extends IntentService */ {
         queue.add(request);
 
         queue.start();
-    }
-
-
-    private static SimpleDateFormat mDateFormat;
-
-    public static Date getDate(String dateTime) throws ParseException {
-        if (mDateFormat == null) {
-            mDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmZ");
-        }
-        return mDateFormat.parse(dateTime);
     }
 
     private static Uri appendQueryBundle(Uri uri, Bundle params) {

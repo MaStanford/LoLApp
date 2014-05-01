@@ -2,6 +2,7 @@ package com.stanford.lolapp.activities;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.net.Uri;
@@ -14,7 +15,11 @@ import android.view.MenuItem;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.google.gson.Gson;
+import com.stanford.lolapp.DataHash;
+import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
+import com.stanford.lolapp.dialogs.ChampionDialog;
 import com.stanford.lolapp.fragments.BuilderFragment;
 import com.stanford.lolapp.fragments.ChampionFragment;
 import com.stanford.lolapp.fragments.DeepsFragment;
@@ -24,6 +29,9 @@ import com.stanford.lolapp.fragments.ItemFragment;
 import com.stanford.lolapp.fragments.NavigationDrawerFragment;
 import com.stanford.lolapp.fragments.SummonerFragment;
 import com.stanford.lolapp.interfaces.OnFragmentInteractionListener;
+import com.stanford.lolapp.models.ChampionDTO;
+import com.stanford.lolapp.models.ChampionIDListDTO;
+import com.stanford.lolapp.models.ChampionListDTO;
 import com.stanford.lolapp.network.VolleyTask;
 import com.stanford.lolapp.network.WebService;
 
@@ -31,8 +39,9 @@ import org.json.JSONObject;
 
 
 public class MainActivity extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks,
-        OnFragmentInteractionListener {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks
+        ,OnFragmentInteractionListener
+        ,ChampionDialog.NoticeDialogListener{
 
     public static final int HOME = 0;
     public static final int CHAMPIONS = 1;
@@ -41,8 +50,11 @@ public class MainActivity extends Activity
     public static final int GAMES = 4;
     public static final int DEEPS = 5;
     public static final int BUILDER = 6;
+
     private static final String LOG_TAG = "MainActivity";
 
+    private LoLApp mAppContext;
+    private DataHash mDataHash;
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
@@ -58,6 +70,9 @@ public class MainActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mAppContext = LoLApp.getApp();
+        mDataHash = mAppContext.getDataHash();
+
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
@@ -66,31 +81,8 @@ public class MainActivity extends Activity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
-
-        // Load the request
-        RequestQueue requestQueue = VolleyTask.getRequestQueue(this);
-
-        WebService.GetStaticChampion request = new WebService.GetStaticChampion("/na","32");
-
-        Bundle params = new Bundle();
-        params.putString(WebService.GetStaticChampion.PARAM_LOCALE,"en_US");
-        params.putString(WebService.GetStaticChampion.PARAM_DATA,"all");
-
-        WebService.makeStaticRequest(this, requestQueue, request, params,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.d(LOG_TAG,response.toString());
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d(LOG_TAG,error.toString());
-                    }
-                }
-        );
     }
+
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
@@ -210,6 +202,26 @@ public class MainActivity extends Activity
 
     @Override
     public void onFragmentInteraction(int id) {
+
+    }
+
+    /**
+     * Listener from Champion Dialog
+     * Probably don't need but was in the google docs
+     * @param dialog
+     */
+    @Override
+    public void onDialogPositiveClick(DialogFragment dialog){
+
+    }
+
+    /**
+     * Listener from Champion Dialog
+     * Probably don't need but was in the google docs
+     * @param dialog
+     */
+    @Override
+    public void onDialogNegativeClick(DialogFragment dialog){
 
     }
 }

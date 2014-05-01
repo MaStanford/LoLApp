@@ -6,14 +6,15 @@
     tools:context="com.stanford.lolapp.fragments.ChampionFragment">
 
     <ListView
-        android:id="@android:id/list"
+        android:id="@+id/lv_champion_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <TextView
-        android:id="@android:id/empty"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center" />
+    <ProgressBar
+        android:id="@+id/pb_champion_list"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" />
 
 </FrameLayout>
