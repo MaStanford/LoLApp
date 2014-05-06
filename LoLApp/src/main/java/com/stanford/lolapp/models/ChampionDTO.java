@@ -19,7 +19,7 @@ public class ChampionDTO {
     private String key                          = null;
     private String lore                         = null;
     private String name                         = null;
-    private String partype                      = null;
+    private String partype                      = null; //Mana,Energy,blood,heat etc
     private PassiveDTO passive                  = null;
     private List<RecommendedDTO> recommended    = null;
     private List<SkinDTO>skins                  = null;

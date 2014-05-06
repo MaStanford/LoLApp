@@ -1,6 +1,7 @@
 package com.stanford.lolapp.adapters;
 
 import android.content.Context;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,18 +12,16 @@ import com.android.volley.toolbox.NetworkImageView;
 import com.stanford.lolapp.DataHash;
 import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
-import com.stanford.lolapp.models.ChampionDTO;
+import com.stanford.lolapp.models.ItemDTO;
 import com.stanford.lolapp.network.VolleyTask;
 
 import java.util.ArrayList;
 
-
 /**
- * Created by Mark Stanford on 4/28/14.
+ * Created by Mark Stanford on 5/1/14.
  */
-public class ChampionListAdapter extends BaseAdapter{
-
-    private static final String LOG_TAG = "ChampionListAdapter";
+public class ItemListAdapter extends BaseAdapter{
+    private static final String TAG = "ItemListAdapter";
 
     private boolean mIsLoading = false;
 
@@ -35,7 +34,7 @@ public class ChampionListAdapter extends BaseAdapter{
     /**
      * Construct the Adapter.
      */
-    public ChampionListAdapter(Context context) {
+    public ItemListAdapter(Context context) {
         super();
         mContext = context;
         mAppContext = LoLApp.getApp();
@@ -50,7 +49,7 @@ public class ChampionListAdapter extends BaseAdapter{
      */
     @Override
     public int getCount() {
-        return mDataHash.sizeOfChampionList();
+        return mDataHash.sizeOfItemList();
     }
 
     /**
@@ -62,7 +61,7 @@ public class ChampionListAdapter extends BaseAdapter{
      */
     @Override
     public Object getItem(int position) {
-        return mDataHash.getChampionByPos(position);
+        return mDataHash.getItemByPos(position);
     }
 
     /**
@@ -73,7 +72,7 @@ public class ChampionListAdapter extends BaseAdapter{
      */
     @Override
     public long getItemId(int position) {
-        return mDataHash.getChampionByPos(position).getId();
+        return mDataHash.getItemByPos(position).getId();
     }
 
     /**
@@ -102,11 +101,11 @@ public class ChampionListAdapter extends BaseAdapter{
         if(convertView == null){
             holder = new ViewHolder();
 
-            convertView = mInflater.inflate(R.layout.list_layout_champion,null);
+            convertView = mInflater.inflate(R.layout.list_layout_item,null);
 
-            holder.name = (TextView) convertView.findViewById(R.id.tv_list_champ_name);
-            holder.tag = (TextView) convertView.findViewById(R.id.tv_list_champ_tag);
-            holder.icon = (NetworkImageView) convertView.findViewById(R.id.iv_champion);
+            holder.name = (TextView) convertView.findViewById(R.id.tv_item_name);
+            holder.tag = (TextView) convertView.findViewById(R.id.tv_item_descript);
+            holder.icon = (NetworkImageView) convertView.findViewById(R.id.iv_item_list);
 
 
             convertView.setTag(holder);
@@ -119,11 +118,11 @@ public class ChampionListAdapter extends BaseAdapter{
          * Create default values in the xml to display until this is done.
          */
         //Get the champion by the position number
-        ChampionDTO champ;
-        if((champ = mAppContext.getDataHash().getChampionByPos(position)) != null) {
-            holder.name.setText(champ.getName());
-            holder.tag.setText(champ.getTag());
-            holder.icon.setImageUrl(champ.getImageURL(), VolleyTask.getImageLoader(mContext));
+        ItemDTO item;
+        if((item = mAppContext.getDataHash().getItemByPos(position)) != null) {
+            holder.name.setText(item.getName());
+            holder.tag.setText(item.getTags().toString());
+            holder.icon.setImageUrl(item.getImageURL(), VolleyTask.getImageLoader(mContext));
         }else{
             loadPosition(position);
         }
@@ -150,7 +149,7 @@ public class ChampionListAdapter extends BaseAdapter{
     private boolean isCloseToEnd(int position){
 
         //Grab the size of the champion map here
-        int sizeOfMap = mAppContext.getDataHash().sizeOfChampionList();
+        int sizeOfMap = mAppContext.getDataHash().sizeOfItemList();
 
         return (position > sizeOfMap - 10) ? true : false;
     }
@@ -163,7 +162,6 @@ public class ChampionListAdapter extends BaseAdapter{
         mIsLoading = true;
         //Recieved the results
         mIsLoading = false;
-        mAppContext.getDataHash().appendChampions(new ArrayList<ChampionDTO>()); //Getting this from the result
         this.notifyDataSetChanged();
     }
 

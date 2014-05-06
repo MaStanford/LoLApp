@@ -6,14 +6,16 @@
     tools:context="com.stanford.lolapp.fragments.ItemFragment">
 
     <ListView
-        android:id="@android:id/list"
+        android:id="@+id/lv_item_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <TextView
-        android:id="@android:id/empty"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center" />
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/pb_item_list"
+        android:layout_gravity="center" />
 
 </FrameLayout>

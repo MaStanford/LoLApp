@@ -57,6 +57,7 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
     private DataHash mDataHash;
 
     private ProgressBar mProgressBar;
+    private boolean mIsLoading = false;
 
     /**
      * The fragment's ListView/GridView.
@@ -99,7 +100,7 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         }
         mAppContext = LoLApp.getApp();
         mDataHash = mAppContext.getDataHash();
-        mAdapter = new ChampionListAdapter(LoLApp.getApp());
+        mAdapter = new ChampionListAdapter(mAppContext);
     }
 
     @Override
@@ -108,9 +109,11 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         View view = inflater.inflate(R.layout.fragment_champion, container, false);
 
         mProgressBar = (ProgressBar) view.findViewById(R.id.pb_champion_list);
-        mProgressBar.setVisibility(ProgressBar.VISIBLE);
+        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
 
-        loadData();
+        if(mDataHash.sizeOfChampionList() == 0 && !mIsLoading){
+            loadData();
+        }
 
         // Set the adapter
         mListView = (ListView) view.findViewById(R.id.lv_champion_list);
@@ -146,6 +149,7 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
 
     public void loadData(){
 
+        mIsLoading = true;
         mProgressBar.setVisibility(ProgressBar.VISIBLE);
 
         /**
@@ -158,15 +162,15 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         WebService.LoLAppWebserviceRequest request = new WebService.GetAllChampionIds();
 
         Bundle params = new Bundle();
+        params.putString(WebService.PARAM_REQUIRED_LOCATION,WebService.location.na.getLocation());
 
-        WebService.makeRequest(mAppContext,requestQueue, request, params,
+        WebService.makeRequest(mAppContext,requestQueue, request, params, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         Gson gson = new Gson();
                         ChampionIDListDTO champList = gson.fromJson(response.toString(),ChampionIDListDTO.class);
                         mDataHash.setChampionIdList(champList);
-                        Log.d(LOG_TAG,"Received ID List: " + champList.toString());
                     }
                 },
                 new Response.ErrorListener() {
@@ -181,22 +185,21 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         requestQueue = VolleyTask.getRequestQueue(mAppContext);
 
         //Grab a champion for PoC
-        request = new WebService.GetStaticChampions();
+        request = new WebService.GetAllChampionData();
 
         params = new Bundle();
 
         params.putString(WebService.PARAM_REQUIRED_LOCATION,WebService.location.na.getLocation());
         params.putString(WebService.PARAM_REQUIRED_LOCALE,WebService.locale.en_US.getLocale());
-        params.putString(WebService.GetStaticChampion.PARAM_DATA,"all");
+        params.putString(WebService.GetChampionData.PARAM_DATA,WebService.ChampData.all.getData());
 
-        WebService.makeStaticRequest(mAppContext,requestQueue, request, params,
+        WebService.makeRequest(mAppContext,requestQueue, request, params, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         Gson gson = new Gson();
                         ChampionListDTO champ = gson.fromJson(response.toString(),ChampionListDTO.class);
                         LoLApp.getApp().getDataHash().setChampionList(champ);
-                        Log.d(LOG_TAG, "Size of List = " + mDataHash.sizeOfChampionList());
                         onDoneLoadData();
                     }
                 },
@@ -213,6 +216,7 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
      * Called when data is done loading
      */
     public void onDoneLoadData(){
+        mIsLoading = false;
         mProgressBar.setVisibility(ProgressBar.INVISIBLE);
         mAdapter.notifyDataSetChanged();
     }

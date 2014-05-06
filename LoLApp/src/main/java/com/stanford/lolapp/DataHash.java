@@ -1,8 +1,15 @@
 package com.stanford.lolapp;
 
+import android.util.Log;
+
+import com.stanford.lolapp.exceptions.ChampionNotFoundException;
+import com.stanford.lolapp.exceptions.ItemNotFoundException;
 import com.stanford.lolapp.models.ChampionDTO;
 import com.stanford.lolapp.models.ChampionIDListDTO;
 import com.stanford.lolapp.models.ChampionListDTO;
+import com.stanford.lolapp.models.ItemDTO;
+import com.stanford.lolapp.models.ItemListDTO;
+import com.stanford.lolapp.models.User;
 
 import java.util.List;
 
@@ -11,16 +18,23 @@ import java.util.List;
  */
 public class DataHash {
 
-    private static final String LOG_TAG = "DataHash";
+    private static final String TAG = "DataHash";
 
     //List of ChampionIDs
     private static ChampionIDListDTO mChampionIdList;
     //Hash of Champion Objects
     private static ChampionListDTO mChampionHash;
+    //Hash of Item Objects
+    private static ItemListDTO mItemHash;
+    //Your user brodog
+    private static User mUser;
 
     private DataHash(){
         this.mChampionIdList = new ChampionIDListDTO();
         this.mChampionHash = new ChampionListDTO();
+        this.mItemHash = new ItemListDTO();
+        this.mUser =  new User();
+
     }
 
     /**
@@ -53,6 +67,31 @@ public class DataHash {
     public ChampionListDTO getChampionList(){
         //TODO: error check null, if null run task to populate first part of list?
         return this.mChampionHash;
+    }
+
+    public ItemListDTO setItemList(ItemListDTO itemList){
+        this.mItemHash = itemList;
+        return this.mItemHash;
+    }
+
+    public ItemListDTO getItemList(){
+        //TODO: error check null, if null run task to populate first part of list?
+        return this.mItemHash;
+    }
+
+    /**
+     * Looks up the ID by positon in the list of IDs
+     * The call to get list of IDs needs to have been completed by now
+     * @param position
+     * @return
+     */
+    public int getChampionIDbyPos(int position){
+        try {
+            return mChampionIdList.getIdByPosition(position);
+        }catch (ChampionNotFoundException e){
+            Log.d(TAG,"Position not found in ID list");
+            return -1;
+        }
     }
 
     /**
@@ -99,6 +138,21 @@ public class DataHash {
             return this.mChampionHash.getChampionByPosition(position);
         return null;
     }
+    /**
+     * Gets Item by position
+     * This needs to be called
+     * @param position
+     * @return
+     */
+    public ItemDTO getItemByPos(int position){
+        try {
+            return mItemHash.getItemByPosition(position);
+        }catch (ItemNotFoundException e){
+            Log.d(TAG,"Position not found in ID list");
+            return null;
+        }
+    }
+
 
     /**
      * Appends a list of champs to the HashMap
@@ -116,5 +170,21 @@ public class DataHash {
      */
     public int sizeOfChampionList(){
         return mChampionHash.getSize();
+    }
+
+    /**
+     * Returns the size of the item data hash
+     * @return
+     */
+    public int sizeOfItemList(){
+        return mItemHash.getSize();
+    }
+
+    public static User getmUser() {
+        return mUser;
+    }
+
+    public static void setUser(User mUser) {
+        DataHash.mUser = mUser;
     }
 }

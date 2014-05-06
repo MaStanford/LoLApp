@@ -1,6 +1,6 @@
 package com.stanford.lolapp.models;
 
-import com.stanford.lolapp.ChampionNotFoundException;
+import com.stanford.lolapp.exceptions.ChampionNotFoundException;
 
 import java.util.List;
 
@@ -35,6 +35,12 @@ public class ChampionIDListDTO {
         return null;
     }
 
+    /**
+     * returns the ID based on the position in the list of IDs
+     * @param position
+     * @return
+     * @throws ChampionNotFoundException
+     */
     public int getIdByPosition(int position) throws ChampionNotFoundException {
         if(champions != null && position  <= champions.size())
             return champions.get(position).getId();

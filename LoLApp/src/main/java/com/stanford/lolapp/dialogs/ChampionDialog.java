@@ -16,6 +16,7 @@ import android.widget.TextView;
 import com.stanford.lolapp.DataHash;
 import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
+import com.stanford.lolapp.interfaces.NoticeDialogListener;
 import com.stanford.lolapp.models.ChampionDTO;
 
 /**
@@ -26,15 +27,6 @@ public class ChampionDialog extends DialogFragment {
     private static final String ARG_CHAMPION_ID = "com.stanford.lolapp.championID";
     private static final String ARG_ISDIALOG = "com.stanford.lolapp.isDialog";
     public static final String TAG = "com.stanford.lolapp.dialogs.ChampionDialog";
-
-    /* The activity that creates an instance of this dialog fragment must
-         * implement this interface in order to receive event callbacks.
-         * Each method passes the DialogFragment in case the host needs to query it. */
-    public interface NoticeDialogListener {
-        public void onDialogPositiveClick(DialogFragment dialog);
-
-        public void onDialogNegativeClick(DialogFragment dialog);
-    }
 
     // Use this instance of the interface to deliver action events
     NoticeDialogListener mListener;

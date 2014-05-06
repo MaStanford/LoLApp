@@ -12,14 +12,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.google.gson.Gson;
 import com.stanford.lolapp.DataHash;
 import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
-import com.stanford.lolapp.dialogs.ChampionDialog;
 import com.stanford.lolapp.fragments.BuilderFragment;
 import com.stanford.lolapp.fragments.ChampionFragment;
 import com.stanford.lolapp.fragments.DeepsFragment;
@@ -28,20 +23,14 @@ import com.stanford.lolapp.fragments.HomeFragment;
 import com.stanford.lolapp.fragments.ItemFragment;
 import com.stanford.lolapp.fragments.NavigationDrawerFragment;
 import com.stanford.lolapp.fragments.SummonerFragment;
+import com.stanford.lolapp.interfaces.NoticeDialogListener;
 import com.stanford.lolapp.interfaces.OnFragmentInteractionListener;
-import com.stanford.lolapp.models.ChampionDTO;
-import com.stanford.lolapp.models.ChampionIDListDTO;
-import com.stanford.lolapp.models.ChampionListDTO;
-import com.stanford.lolapp.network.VolleyTask;
-import com.stanford.lolapp.network.WebService;
-
-import org.json.JSONObject;
 
 
 public class MainActivity extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks
         ,OnFragmentInteractionListener
-        ,ChampionDialog.NoticeDialogListener{
+        ,NoticeDialogListener {
 
     public static final int HOME = 0;
     public static final int CHAMPIONS = 1;

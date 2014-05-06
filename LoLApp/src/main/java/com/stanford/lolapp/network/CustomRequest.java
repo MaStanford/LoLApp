@@ -18,22 +18,24 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-public abstract class GsonRequestObject<R, T> extends Request<T> {
+public abstract class CustomRequest<R, T> extends Request<T> {
 
     protected Gson gson;
     private Listener<T> listener;
     private Class<R> inputType;
     private Class<T> outputType;
     private R object;
+    private Map<String, String> params;
 
     private static final String PROTOCOL_CHARSET = "utf-8";
 
-    public GsonRequestObject(int method, String url, R postObject, Class<R> inputType, Class<T> outputType, Listener<T> listener, ErrorListener errorListener) {
+    public CustomRequest(int method, String url, Map<String, String> params, R postObject, Class<R> inputType, Class<T> outputType, Listener<T> listener, ErrorListener errorListener) {
         super(method, url, errorListener);
         this.listener = listener;
         this.inputType = inputType;
         this.outputType = outputType;
         this.object = postObject;
+        this.params = params;
         gson = new Gson();
     }
 
@@ -42,6 +44,12 @@ public abstract class GsonRequestObject<R, T> extends Request<T> {
         Map<String, String> headers = null;
         return headers != null ? headers : super.getHeaders();
     }
+
+    @Override
+    protected Map<String, String> getParams()
+            throws com.android.volley.AuthFailureError {
+        return params;
+    };
 
     @Override
     public byte[] getBody() {

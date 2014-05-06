@@ -5,6 +5,8 @@ package com.stanford.lolapp.util;
  */
 public class Consts {
     //Shared Pref Keys
-    public static final String KEY_SHARED_PREFS = "com.stanford.lolapp.keySharedPrefs";
+    public static final String KEY_SHARED_PREFS     = "com.stanford.lolapp.keySharedPrefs";
 
+    //Account Manager keys
+    public static final String KEY_ACCOUNT_MANAGER  = "com.stanford.lolapp.keyAcccountManager";
 }
