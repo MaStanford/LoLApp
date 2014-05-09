@@ -18,19 +18,16 @@ import android.widget.ProgressBar;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.google.gson.Gson;
-import com.stanford.lolapp.DataHash;
-import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
 
 import com.stanford.lolapp.activities.MainActivity;
 import com.stanford.lolapp.adapters.ChampionListAdapter;
 import com.stanford.lolapp.dialogs.ChampionDialog;
+import com.stanford.lolapp.interfaces.IServiceCallback;
 import com.stanford.lolapp.interfaces.OnFragmentInteractionListener;
-import com.stanford.lolapp.models.ChampionIDListDTO;
-import com.stanford.lolapp.models.ChampionListDTO;
 import com.stanford.lolapp.network.VolleyTask;
 import com.stanford.lolapp.network.WebService;
+import com.stanford.lolapp.service.LoLAppService;
 
 import org.json.JSONObject;
 
@@ -46,18 +43,17 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
 
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    private static final String LOG_TAG = "ChampionFragment";
+    private static final String TAG = "ChampionFragment";
 
     private String mParam1;
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
 
-    private LoLApp mAppContext;
-    private DataHash mDataHash;
-
     private ProgressBar mProgressBar;
     private boolean mIsLoading = false;
+
+    private LoLAppService mService;
 
     /**
      * The fragment's ListView/GridView.
@@ -98,9 +94,8 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-        mAppContext = LoLApp.getApp();
-        mDataHash = mAppContext.getDataHash();
-        mAdapter = new ChampionListAdapter(mAppContext);
+
+        mAdapter = new ChampionListAdapter(getActivity());
     }
 
     @Override
@@ -110,10 +105,6 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
 
         mProgressBar = (ProgressBar) view.findViewById(R.id.pb_champion_list);
         mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-
-        if(mDataHash.sizeOfChampionList() == 0 && !mIsLoading){
-            loadData();
-        }
 
         // Set the adapter
         mListView = (ListView) view.findViewById(R.id.lv_champion_list);
@@ -156,7 +147,7 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
          * Load all the Champion ID
          */
         // Load the request
-        RequestQueue requestQueue = VolleyTask.getRequestQueue(mAppContext);
+        RequestQueue requestQueue = VolleyTask.getRequestQueue(getActivity());
 
         //Grab a champion for PoC
         WebService.LoLAppWebserviceRequest request = new WebService.GetAllChampionIds();
@@ -164,25 +155,22 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         Bundle params = new Bundle();
         params.putString(WebService.PARAM_REQUIRED_LOCATION,WebService.location.na.getLocation());
 
-        WebService.makeRequest(mAppContext,requestQueue, request, params, null,
+        WebService.makeRequest(requestQueue, request, params, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        Gson gson = new Gson();
-                        ChampionIDListDTO champList = gson.fromJson(response.toString(),ChampionIDListDTO.class);
-                        mDataHash.setChampionIdList(champList);
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.d(LOG_TAG,error.toString());
+                        Log.d(TAG,error.toString());
                     }
                 }
         );
 
         // Load the request
-        requestQueue = VolleyTask.getRequestQueue(mAppContext);
+        requestQueue = VolleyTask.getRequestQueue(getActivity());
 
         //Grab a champion for PoC
         request = new WebService.GetAllChampionData();
@@ -193,20 +181,17 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         params.putString(WebService.PARAM_REQUIRED_LOCALE,WebService.locale.en_US.getLocale());
         params.putString(WebService.GetChampionData.PARAM_DATA,WebService.ChampData.all.getData());
 
-        WebService.makeRequest(mAppContext,requestQueue, request, params, null,
+        WebService.makeRequest(requestQueue, request, params, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        Gson gson = new Gson();
-                        ChampionListDTO champ = gson.fromJson(response.toString(),ChampionListDTO.class);
-                        LoLApp.getApp().getDataHash().setChampionList(champ);
                         onDoneLoadData();
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.d(LOG_TAG,error.toString());
+                        Log.d(TAG,error.toString());
                     }
                 }
         );
@@ -246,7 +231,10 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
             DialogFragment newFragment = ChampionDialog.newInstance(position,true);
             newFragment.show(mFragmentTrans, ChampionDialog.TAG);
 
-            mListener.onFragmentInteraction(position);
+            //Calllback to Activity
+            Bundle mBundle = new Bundle();
+            mBundle.putInt("position",position);
+            mListener.onFragmentInteraction(mBundle);
         }
     }
 }

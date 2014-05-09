@@ -1,7 +1,9 @@
 package com.stanford.lolapp.models;
 
+import com.google.gson.Gson;
 import com.stanford.lolapp.exceptions.ChampionNotFoundException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,6 +15,10 @@ public class ChampionIDListDTO {
     //Cannot be static.  For some reason GSON doesn't work on static fields.
     //TODO: Figure out why reflection fails on static fields
     private List<ChampionIdDTO> champions;
+
+    public ChampionIDListDTO(){
+        champions = new ArrayList<ChampionIdDTO>();
+    }
 
     /**
      * Returns the array of ChampionID objects
@@ -45,6 +51,19 @@ public class ChampionIDListDTO {
         if(champions != null && position  <= champions.size())
             return champions.get(position).getId();
         throw new ChampionNotFoundException("Cannot find Champion ID by Position");
+    }
+
+    /**
+     * Returns size of championID list
+     * @return
+     */
+    public int getSize(){
+        return champions.size();
+    }
+
+    public String toJSON(){
+        Gson gson = new Gson();
+        return gson.toJson(this);
     }
 
     /**

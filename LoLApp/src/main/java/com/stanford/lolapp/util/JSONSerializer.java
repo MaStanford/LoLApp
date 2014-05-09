@@ -42,6 +42,23 @@ public class JSONSerializer {
         }
     }
 
+    /**
+     *  Saves the JSONObject to file from String
+     */
+    public static void saveJSON(String object,File filename) throws JSONException, IOException {
+        //Write to disk
+        Writer mWriter = null;
+        try{
+            FileOutputStream mFileOutputStream = new FileOutputStream(filename);
+            mWriter = new OutputStreamWriter(mFileOutputStream);
+            mWriter.write(object);
+        } finally {
+            if(mWriter != null){
+                mWriter.close();
+            }
+        }
+    }
+
 
     public static JSONObject loadJSONFile(File filename) throws JSONException, IOException {
 
@@ -72,6 +89,33 @@ public class JSONSerializer {
             }
         }
         return object;
+    }
+
+    public static String loadStringFile(File filename) throws IOException {
+
+        Toast.makeText(LoLApp.getApp(), "Loading " + filename.getName() + "...", Toast.LENGTH_LONG).show();
+
+        StringBuilder sb = new StringBuilder();
+
+        BufferedReader mBufferedReader = null;
+        try{
+            InputStream mInStream = new FileInputStream(filename);
+            mBufferedReader = new BufferedReader(new InputStreamReader(mInStream));
+            StringBuilder mJSONString = new StringBuilder();
+            //Have a placeholder for each string
+            String mLine = null;
+            //read each line and append to the json string
+            while((mLine = mBufferedReader.readLine()) != null ){
+                sb.append(mLine);
+            }
+        } catch (FileNotFoundException error){
+
+        } finally {
+            if(mBufferedReader != null){
+                mBufferedReader.close();
+            }
+        }
+        return sb.toString();
     }
 
 }

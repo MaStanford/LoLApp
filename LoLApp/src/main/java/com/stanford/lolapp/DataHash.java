@@ -29,12 +29,16 @@ public class DataHash {
     //Your user brodog
     private static User mUser;
 
+    //Bools for checking state of data
+    private boolean isChampsAllLoaded = false;
+    private boolean isItemsAllLoaded = false;
+    private boolean isChampIdsAllLoaded = false;
+
     private DataHash(){
         this.mChampionIdList = new ChampionIDListDTO();
         this.mChampionHash = new ChampionListDTO();
         this.mItemHash = new ItemListDTO();
         this.mUser =  new User();
-
     }
 
     /**
@@ -51,32 +55,44 @@ public class DataHash {
 
     public ChampionIDListDTO setChampionIdList(ChampionIDListDTO champioIDlist){
         this.mChampionIdList = champioIDlist;
+        this.isChampIdsAllLoaded = true;
         return this.mChampionIdList;
     }
 
     public ChampionIDListDTO getChampionIdList(){
-        //TODO: error check null, if null run task to get list?
         return this.mChampionIdList;
+    }
+
+    public boolean isChampIDListEmpty(){
+        return (mChampionIdList.getSize() > 0);
     }
 
     public ChampionListDTO setChampionList(ChampionListDTO championlist){
         this.mChampionHash = championlist;
+        this.isChampsAllLoaded = true;
         return this.mChampionHash;
     }
 
     public ChampionListDTO getChampionList(){
-        //TODO: error check null, if null run task to populate first part of list?
         return this.mChampionHash;
+    }
+
+    public boolean isChampListEmpty(){
+        return (mChampionHash.getSize() > 0);
     }
 
     public ItemListDTO setItemList(ItemListDTO itemList){
         this.mItemHash = itemList;
+        this.isItemsAllLoaded = true;
         return this.mItemHash;
     }
 
     public ItemListDTO getItemList(){
-        //TODO: error check null, if null run task to populate first part of list?
         return this.mItemHash;
+    }
+
+    public boolean isItemListEmpty(){
+        return (mItemHash.getSize() > 0);
     }
 
     /**
@@ -180,11 +196,27 @@ public class DataHash {
         return mItemHash.getSize();
     }
 
-    public static User getmUser() {
+    public User getUser() {
         return mUser;
     }
 
-    public static void setUser(User mUser) {
+    public void setUser(User mUser) {
         DataHash.mUser = mUser;
+    }
+
+    public void deleteChampions(){
+        this.mChampionHash =  new ChampionListDTO();
+    }
+
+    public void deleteChampionIDs(){
+        this.mChampionIdList =  new ChampionIDListDTO();
+    }
+
+    public void deleteUser(){
+        this.mUser =  null;
+    }
+
+    public void deleteItems(){
+        this.mItemHash =  new ItemListDTO();
     }
 }

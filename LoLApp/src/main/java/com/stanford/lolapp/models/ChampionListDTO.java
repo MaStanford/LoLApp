@@ -1,7 +1,12 @@
 package com.stanford.lolapp.models;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 import com.stanford.lolapp.LoLApp;
 
+import org.json.JSONObject;
+
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -19,7 +24,9 @@ public class ChampionListDTO {
     String type;
     String version;
 
-    public ChampionListDTO() {
+    public ChampionListDTO(){
+        data =  new HashMap<String, ChampionDTO>();
+        keys = new HashMap<String, String>();
     }
 
     public Map<String, ChampionDTO> getData() {
@@ -120,6 +127,16 @@ public class ChampionListDTO {
         if(data == null)
             return 0;
         return data.size();
+    }
+
+    public String toJSON(){
+        Gson gson = new Gson();
+        return gson.toJson(this);
+    }
+
+    public static ChampionListDTO fromJSON(String json){
+        Gson gson = new Gson();
+        return gson.fromJson(json,ChampionListDTO.class);
     }
 
     @Override

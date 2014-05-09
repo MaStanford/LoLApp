@@ -18,6 +18,14 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+/**
+ * Extended volley request.
+ *
+ * This can be fixed up and used with GSON to simplify my requests.
+ * TODO: Actually get around to doing this.
+ * @param <R>
+ * @param <T>
+ */
 public abstract class CustomRequest<R, T> extends Request<T> {
 
     protected Gson gson;

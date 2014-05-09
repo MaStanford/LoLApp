@@ -13,7 +13,9 @@ import android.util.Log;
 
 import com.android.volley.NetworkResponse;
 
-@SuppressWarnings("serial")
+/**
+ * I may support SSO in the future.  Maybe facebook or some shit.
+ */
 public class SsoClientError extends com.android.volley.VolleyError {
 
     public static final String TAG = "SsoClientError";

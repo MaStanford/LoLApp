@@ -1,21 +1,18 @@
 package com.stanford.lolapp.network;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.content.Intent;
 import android.os.Bundle;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
-import com.stanford.lolapp.DataHash;
 import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.models.User;
-import com.stanford.lolapp.util.Consts;
 
 import org.json.JSONObject;
 
 /**
  * Created by Mark Stanford on 5/5/14.
+ *
+ * I would really prefer that only the service use this class
  */
 public class UserTask {
 
@@ -49,7 +46,7 @@ public class UserTask {
      */
     public void loginWithUserPassword(Bundle params, Response.Listener<JSONObject> responseListener, Response.ErrorListener errorListener){
         WebService.LoLAppWebserviceRequest request = new WebService.Login();
-        WebService.makeRequest(mContext, requestQueue, request, params, null, responseListener,errorListener);
+        WebService.makeRequest(requestQueue, request, params, null, responseListener,errorListener);
     }
 
     /**
@@ -62,7 +59,7 @@ public class UserTask {
      */
     public void createUser(Bundle params, Response.Listener<JSONObject> responseListener, Response.ErrorListener errorListener){
         WebService.LoLAppWebserviceRequest request = new WebService.CreateUser();
-        WebService.makeRequest(mContext, requestQueue, request, params, null, responseListener,errorListener);
+        WebService.makeRequest(requestQueue, request, params, null, responseListener,errorListener);
     }
 
     public boolean isUserValid(){

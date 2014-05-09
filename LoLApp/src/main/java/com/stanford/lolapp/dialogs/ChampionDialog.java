@@ -1,13 +1,8 @@
 package com.stanford.lolapp.dialogs;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.DialogFragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +11,7 @@ import android.widget.TextView;
 import com.stanford.lolapp.DataHash;
 import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
-import com.stanford.lolapp.interfaces.NoticeDialogListener;
+import com.stanford.lolapp.interfaces.INoticeDialogListener;
 import com.stanford.lolapp.models.ChampionDTO;
 
 /**
@@ -29,7 +24,7 @@ public class ChampionDialog extends DialogFragment {
     public static final String TAG = "com.stanford.lolapp.dialogs.ChampionDialog";
 
     // Use this instance of the interface to deliver action events
-    NoticeDialogListener mListener;
+    INoticeDialogListener mListener;
 
     private static LoLApp mContext;
     private static DataHash mDataHash;
@@ -66,7 +61,7 @@ public class ChampionDialog extends DialogFragment {
         // Verify that the host activity implements the callback interface
         try {
             // Instantiate the NoticeDialogListener so we can send events to the host
-            mListener = (NoticeDialogListener) activity;
+            mListener = (INoticeDialogListener) activity;
         } catch (ClassCastException e) {
             // The activity doesn't implement the interface, throw exception
             throw new ClassCastException(activity.toString()

@@ -2,18 +2,19 @@ package com.stanford.lolapp.activities;
 
 import android.app.ActionBar;
 import android.app.Activity;
-import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.ComponentName;
+import android.content.DialogInterface;
+import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.stanford.lolapp.DataHash;
-import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
 import com.stanford.lolapp.fragments.BuilderFragment;
 import com.stanford.lolapp.fragments.ChampionFragment;
@@ -23,14 +24,20 @@ import com.stanford.lolapp.fragments.HomeFragment;
 import com.stanford.lolapp.fragments.ItemFragment;
 import com.stanford.lolapp.fragments.NavigationDrawerFragment;
 import com.stanford.lolapp.fragments.SummonerFragment;
-import com.stanford.lolapp.interfaces.NoticeDialogListener;
+import com.stanford.lolapp.interfaces.INoticeDialogListener;
+import com.stanford.lolapp.interfaces.IServiceCallback;
 import com.stanford.lolapp.interfaces.OnFragmentInteractionListener;
+import com.stanford.lolapp.service.LoLAppService;
 
 
 public class MainActivity extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks
         ,OnFragmentInteractionListener
-        ,NoticeDialogListener {
+        ,INoticeDialogListener
+        ,IServiceCallback {
+
+    private LoLAppService mService;
+    private boolean mBound = false;
 
     public static final int HOME = 0;
     public static final int CHAMPIONS = 1;
@@ -42,8 +49,6 @@ public class MainActivity extends Activity
 
     private static final String LOG_TAG = "MainActivity";
 
-    private LoLApp mAppContext;
-    private DataHash mDataHash;
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
@@ -54,13 +59,25 @@ public class MainActivity extends Activity
      */
     private CharSequence mTitle;
 
+    /***************************************************
+     * Services
+     *************************************************/
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            LoLAppService.LocalBinder binder = (LoLAppService.LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
+        }
+        public void onServiceDisconnected(ComponentName className) {
+            mBound = false;
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        mAppContext = LoLApp.getApp();
-        mDataHash = mAppContext.getDataHash();
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
@@ -71,7 +88,6 @@ public class MainActivity extends Activity
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
     }
-
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
@@ -180,17 +196,7 @@ public class MainActivity extends Activity
     }
 
     @Override
-    public void onFragmentInteraction(Uri uri) {
-
-    }
-
-    @Override
-    public void onFragmentInteraction(String id) {
-
-    }
-
-    @Override
-    public void onFragmentInteraction(int id) {
+    public void onFragmentInteraction(Bundle bundle) {
 
     }
 
@@ -200,7 +206,7 @@ public class MainActivity extends Activity
      * @param dialog
      */
     @Override
-    public void onDialogPositiveClick(DialogFragment dialog){
+    public void onDialogPositiveClick(DialogInterface dialog){
 
     }
 
@@ -210,7 +216,11 @@ public class MainActivity extends Activity
      * @param dialog
      */
     @Override
-    public void onDialogNegativeClick(DialogFragment dialog){
+    public void onDialogNegativeClick(DialogInterface dialog){
 
+    }
+
+    @Override public LoLAppService getService(){
+        return this.mService;
     }
 }

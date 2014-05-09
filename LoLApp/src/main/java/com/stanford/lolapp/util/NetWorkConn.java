@@ -34,4 +34,20 @@ public class NetWorkConn {
         return status;
     }
 
+    /**
+     * Check if wifi is connected
+     * @param activity
+     * @return
+     */
+    public static boolean isWifiConnected(Activity activity) {
+
+        ConnectivityManager connManager = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+        if (mWifi.isConnected()) {
+            return true;
+        }
+        return false;
+    }
+
 }

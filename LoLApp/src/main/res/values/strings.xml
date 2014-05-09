@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Titles and shit-->
+    <!-- Titles and shit -->
     <string name="app_name">LoLApp</string>
+    <string name="title_activity_start">LoLApp</string>
     <string name="title_section1">Home</string>
     <string name="title_section2">Champions</string>
     <string name="title_section3">Items</string>
@@ -10,24 +11,36 @@
     <string name="title_section5">Games</string>
     <string name="title_section6">Deeps Calc</string>
     <string name="title_section7">Item/Rune Builder</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="action_example">Timers</string>
-    <string name="action_settings">Settings</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="btn_create_user">Create User</string>
     <string name="title_activity_create_user">Create User</string>
     <string name="title_activity_login">Login</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <!-- Strings related to login -->
-    <string name="prompt_email">Email (optional)</string>
+    <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
     <string name="btn_sign_in">Sign in</string>
+    <string name="btn_create_user">Create User</string>
     <string name="action_sign_in_short">Sign in</string>
+    <string name="et_create_user">User Name</string>
+
+    <!-- Errors -->
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
+    <string name="error_invalid_user">No Special Character</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
-    <string name="et_create_user">User Name</string>
+
+    <!-- Dialogs -->
+    <string name="network_error_title">Network Connection Error</string>
+    <string name="network_error_body">This app requires a network connection \nPlease connect now.</string>
+    <string name="network_error_positive">Connected</string>
+    <string name="network_error_negative">Exit</string>
+
+    <!-- Action String-->
+    <string name="action_timers">Timers</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_logout">Logout</string>
 
 </resources>

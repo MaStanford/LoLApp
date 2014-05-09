@@ -15,21 +15,35 @@
         <activity
             android:name="com.stanford.lolapp.activities.LoginActivity"
             android:label="@string/title_activity_login"
-            android:windowSoftInputMode="adjustResize|stateVisible" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:windowSoftInputMode="adjustResize|stateVisible"
+            android:noHistory="true">
         </activity>
         <activity
             android:name="com.stanford.lolapp.activities.CreateUserActivity"
             android:label="@string/title_activity_create_user"
             android:parentActivityName="com.stanford.lolapp.activities.LoginActivity"
-            android:windowSoftInputMode="adjustResize|stateVisible" >
+            android:windowSoftInputMode="adjustResize|stateVisible"
+            android:noHistory="true">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="LoginActivity" />
+        </activity>
+
+        <service
+            android:name="com.stanford.lolapp.service.LoLAppService"
+            android:enabled="true"
+            android:exported="true" >
+        </service>
+
+        <activity
+            android:name="com.stanford.lolapp.activities.LaunchActivity"
+            android:label="@string/title_activity_start"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
     </application>
 

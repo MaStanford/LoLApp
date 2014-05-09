@@ -24,8 +24,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,6 +36,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.stanford.lolapp.DataHash;
 import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
@@ -41,6 +44,7 @@ import com.stanford.lolapp.models.User;
 import com.stanford.lolapp.network.JSONBody;
 import com.stanford.lolapp.network.VolleyTask;
 import com.stanford.lolapp.network.WebService;
+import com.stanford.lolapp.util.Constants;
 
 import org.json.JSONObject;
 
@@ -70,12 +74,12 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
         setupActionBar();
 
         // Set up the login form.
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
+        mEmailView = (AutoCompleteTextView) findViewById(R.id.et_email);
         populateAutoComplete();
 
-        mUserView = (EditText) findViewById(R.id.user);
+        mUserView = (EditText) findViewById(R.id.et_user);
 
-        mPasswordView = (EditText) findViewById(R.id.password);
+        mPasswordView = (EditText) findViewById(R.id.et_password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -87,11 +91,21 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
             }
         });
 
-        Button mEmailSignInButton = (Button) findViewById(R.id.btn_sign_in);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
+        Button mBtnCreateUser = (Button) findViewById(R.id.btn_create_user);
+        mBtnCreateUser.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 attemptLogin();
+            }
+        });
+
+        findViewById(R.id.btn_sign_in).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Start new Activity
+                Intent mIntent = new Intent(mContext,LoginActivity.class);
+                mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY);
+                startActivity(mIntent);
             }
         });
 
@@ -123,6 +137,7 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
         // Reset errors.
         mEmailView.setError(null);
         mPasswordView.setError(null);
+        mUserView.setError(null);
 
         // Store values at the time of the login attempt.
         String email = mEmailView.getText().toString();
@@ -134,18 +149,18 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
 
 
         // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+        if (TextUtils.isEmpty(password) && !isPasswordValid(password)) {
             mPasswordView.setError(getString(R.string.error_invalid_password));
             focusView = mPasswordView;
             cancel = true;
         }
 
-        // Check for a valid email address.
-        if (TextUtils.isEmpty(email)) {
+        //Check emails
+        if(TextUtils.isEmpty(email)){
             mEmailView.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
             cancel = true;
-        } else if (!isEmailValid(email)) {
+        }else if(!isEmailValid(email)){
             mEmailView.setError(getString(R.string.error_invalid_email));
             focusView = mEmailView;
             cancel = true;
@@ -156,8 +171,8 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
             mUserView.setError(getString(R.string.error_field_required));
             focusView = mUserView;
             cancel = true;
-        } else if (!isUserValid(email)) {
-            mUserView.setError(getString(R.string.error_invalid_email));
+        } else if (!isUserValid(user)) {
+            mUserView.setError(getString(R.string.error_invalid_user));
             focusView = mUserView;
             cancel = true;
         }
@@ -174,16 +189,16 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
         }
     }
 
-    private boolean isEmailValid(String email) {
-        return email.contains("@") && email.contains(".");
+    private boolean isPasswordValid(String password) {
+        return password.length() > 3;
     }
 
-    private boolean isPasswordValid(String password) {
-        return password.length() > 4;
+    private boolean isEmailValid(String email){
+        return email.contains("@");
     }
 
     private boolean isUserValid(String user) {
-        Pattern p = Pattern.compile("[^a-z0-9 ]", Pattern.CASE_INSENSITIVE);
+        Pattern p = Pattern.compile("[^a-z0-9]", Pattern.CASE_INSENSITIVE);
         Matcher m = p.matcher(user);
         boolean b = m.find();
         if (b)
@@ -264,14 +279,29 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
 
     private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
         //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<String>(CreateUserActivity.this,
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(CreateUserActivity.this,
                         android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
 
         mEmailView.setAdapter(adapter);
     }
 
-    private void atteptCreateUser(String user, String password, String email) {
+    private void errorHelper(String body){
+        String code = "code";
+        String emailTaken = "203";
+        String userNameMissing = "200";
+
+        Gson gson = new Gson();
+        Type type = new TypeToken<Map<String,String>>(){}.getType();
+        Map<String, String> map = gson.fromJson(body,type);
+
+        if(map.containsKey(code))
+            if(map.get(code).equals(emailTaken));
+                mEmailView.setError("Email Taken");
+            if(map.get(code).equals(userNameMissing));
+                mEmailView.setError("User Name invalid");
+    }
+
+    private void atteptCreateUser(final String user, final String password, String email) {
 
         mIsLoading = true;
         showProgress(true);
@@ -286,7 +316,7 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
         body.addTuple(WebService.CreateUser.PARAM_REQUIRED_PASSWORD, password);
         body.addTuple(WebService.CreateUser.PARAM_OPTIONAL_EMAIL, email);
 
-        WebService.makeRequest(this, requestQueue, request, null, body,
+        WebService.makeRequest(requestQueue, request, null, body,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -295,12 +325,16 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
                         mIsLoading = false;
                         showProgress(false);
 
+                        //Create a user
                         Gson gson = new Gson();
-                        User mUSer = gson.fromJson(response.toString(),User.class);
-                        mDataHase.setUser(mUSer);
+                        User mUser = gson.fromJson(response.toString(),User.class);
+                        mUser.setPassword(password);
+                        mUser.setUsername(user);
+                        mDataHase.setUser(mUser);
 
                         //Start new Activity
                         Intent mIntent = new Intent(mContext,MainActivity.class);
+                        mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY);
                         startActivity(mIntent);
                     }
                 },
@@ -309,7 +343,12 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
                     public void onErrorResponse(VolleyError error) {
                         Log.d(TAG, error.toString());
                         if (error.networkResponse.statusCode == 400) {
-                            Log.d(TAG, "Shit Mang , I don't think it likes your user or Email brodog");
+                            try {
+                                Constants.DEBUG_LOG(TAG, new String(error.networkResponse.data, "UTF-8"));
+                                errorHelper(new String(error.networkResponse.data, "UTF-8"));
+                            }catch (Exception e){
+                                Constants.DEBUG_LOG(TAG,"Can not decode response");
+                            }
                             mIsLoading = false;
                             showProgress(false);
                         }

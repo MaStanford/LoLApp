@@ -25,6 +25,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -49,7 +51,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
     private static final String TAG = "LoginActivity";
 
     // UI references.
-    private AutoCompleteTextView mEmailView;
+    private AutoCompleteTextView mUserView;
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
@@ -66,10 +68,10 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
         setContentView(R.layout.activity_login);
 
         // Set up the login form.
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
+        mUserView = (AutoCompleteTextView) findViewById(R.id.et_user);
         populateAutoComplete();
 
-        mPasswordView = (EditText) findViewById(R.id.password);
+        mPasswordView = (EditText) findViewById(R.id.et_password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -97,6 +99,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
 
                 //Start new Activity
                 Intent mIntent = new Intent(mContext,CreateUserActivity.class);
+                mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY);
                 startActivity(mIntent);
             }
         });
@@ -121,11 +124,11 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
         }
 
         // Reset errors.
-        mEmailView.setError(null);
+        mUserView.setError(null);
         mPasswordView.setError(null);
 
         // Store values at the time of the login attempt.
-        String email = mEmailView.getText().toString();
+        String user = mUserView.getText().toString();
         String password = mPasswordView.getText().toString();
 
         boolean cancel = false;
@@ -140,13 +143,13 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
         }
 
         // Check for a valid email address.
-        if (TextUtils.isEmpty(email)) {
-            mEmailView.setError(getString(R.string.error_field_required));
-            focusView = mEmailView;
+        if (TextUtils.isEmpty(user)) {
+            mUserView.setError(getString(R.string.error_field_required));
+            focusView = mUserView;
             cancel = true;
-        } else if (!isEmailValid(email)) {
-            mEmailView.setError(getString(R.string.error_invalid_email));
-            focusView = mEmailView;
+        } else if (!isUserValid(user)) {
+            mUserView.setError(getString(R.string.error_invalid_email));
+            focusView = mUserView;
             cancel = true;
         }
 
@@ -158,11 +161,16 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            attemptLogin(email, password);
+            attemptLogin(user, password);
         }
     }
-    private boolean isEmailValid(String email) {
-        return true;//email.contains("@");
+    private boolean isUserValid(String user) {
+        Pattern p = Pattern.compile("[^a-z0-9 ]", Pattern.CASE_INSENSITIVE);
+        Matcher m = p.matcher(user);
+        boolean b = m.find();
+        if (b)
+            return false;
+        return true;
     }
 
     private boolean isPasswordValid(String password) {
@@ -246,7 +254,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(LoginActivity.this,
                 android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
 
-        mEmailView.setAdapter(adapter);
+        mUserView.setAdapter(adapter);
     }
 
     private void attemptLogin(String user, String pass){
@@ -276,6 +284,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
 
                         //Start new Activity
                         Intent mIntent = new Intent(mContext,MainActivity.class);
+                        mIntent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
                         startActivity(mIntent);
                     }
                 },
@@ -284,10 +293,10 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
                     public void onErrorResponse(VolleyError error) {
                         Log.d(TAG,error.toString());
                         if(error.networkResponse.statusCode == 400){
-                            Log.d(TAG,"It didn't like your shit");
+                            mPasswordView.setError("Login Failed");
                         }
                         if(error.networkResponse.statusCode == 404){
-                            Log.d(TAG,"It didn't like your shit");
+                            mPasswordView.setError("Login Failed");
                         }
                         mIsLoading = false;
                         showProgress(false);

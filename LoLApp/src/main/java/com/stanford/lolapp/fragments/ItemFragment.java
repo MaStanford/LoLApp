@@ -156,7 +156,7 @@ public class ItemFragment extends Fragment implements AbsListView.OnItemClickLis
         params.putString(WebService.PARAM_REQUIRED_LOCATION, WebService.location.na.getLocation());
         params.putString(WebService.PARAM_REQUIRED_LOCALE, WebService.locale.en_US.getLocale());
         params.putString(WebService.GetAllItems.PARAM_DATA, WebService.ItemData.all.getParam());
-        WebService.makeRequest(mAppContext, requestQueue, request, params,null,
+        WebService.makeRequest(requestQueue, request, params,null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -185,7 +185,7 @@ public class ItemFragment extends Fragment implements AbsListView.OnItemClickLis
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (null != mListener) {
-           mListener.onFragmentInteraction(position);
+           mListener.onFragmentInteraction(null);
         }
     }
 }

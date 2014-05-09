@@ -1,6 +1,5 @@
 package com.stanford.lolapp.network;
 
-import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -447,7 +446,6 @@ public class WebService {
     }
 
     public static void makeRequest(
-            final Context context,
             final RequestQueue queue,
             final WebserviceRequest serviceRequest,
             final Bundle requestParams,
@@ -524,6 +522,7 @@ public class WebService {
                         mLocation,
                         API_VERSION,
                         uriString));
+                uri = appendQueryBundle(uri, params);
                 break;
             case SERVICE_GET_CHAMPION_ID:
                 params.putString(PARAM_RIOT_API_KEY, RIOT_API_KEY);

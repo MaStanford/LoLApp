@@ -9,16 +9,13 @@ import com.stanford.lolapp.LoLApp;
 
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by Mark Stanford on 4/29/14.
- *
+ * <p/>
  * Use this calls to make network calls when local persistence or data structures do not contain the
  * required data.
- *
- * TODO: Decide if this is a good design or if there should be a service used for all RPCs
+ * <p/>
+ * I would prefer that only the service use this class.
  */
 public class ChampionTask {
 
@@ -26,7 +23,7 @@ public class ChampionTask {
     private static DataHash mDataHash;
     private static RequestQueue requestQueue;
 
-    private ChampionTask(){
+    private ChampionTask() {
         mContext = LoLApp.getApp();
         mDataHash = mContext.getDataHash();
         requestQueue = VolleyTask.getRequestQueue(mContext);
@@ -45,40 +42,70 @@ public class ChampionTask {
     }
 
     /**
-     * Fetches a champion by ID
-     * Pass listeners into this.
+     * Fetches champion by ID.  Response is in listener
      * @param id
+     * @param params
+     * @param body
      * @param responseListener
      * @param errorListener
      */
-    public void fetchChampionById(int id, Response.Listener<JSONObject> responseListener, Response.ErrorListener errorListener){
+    public void fetchChampionById(int id,
+                                  Bundle params,
+                                  JSONBody body,
+                                  Response.Listener<JSONObject> responseListener,
+                                  Response.ErrorListener errorListener) {
         WebService.LoLAppWebserviceRequest request = new WebService.GetChampionData(id);
-        //TODO: Grab the bundle parameters from the shared prefs.
-        Bundle params = new Bundle();
-        params.putString(WebService.PARAM_REQUIRED_LOCATION,WebService.location.na.getLocation());
-        params.putString(WebService.PARAM_REQUIRED_LOCALE,WebService.locale.en_US.getLocale());
-        params.putString(WebService.GetChampionData.PARAM_DATA,WebService.ChampData.all.getData());
-        WebService.makeRequest(mContext, requestQueue, request, params, null,responseListener,errorListener);
+        WebService.makeRequest(requestQueue, request, params, body, responseListener, errorListener);
+    }
+
+
+    /**
+     * Creates a Champion request for each position in the range
+     * @param min
+     * @param max
+     * @param params
+     * @param body
+     * @param responseListener
+     * @param errorListener
+     */
+    public void fetchChampionRangeByPosition(int min, int max,
+                                             Bundle params,
+                                             JSONBody body,
+                                             Response.Listener<JSONObject> responseListener,
+                                             Response.ErrorListener errorListener) {
+        for (int i = min; i < max; i++) {
+            WebService.LoLAppWebserviceRequest request = new WebService.GetChampionData(mDataHash.getChampionIDbyPos(i));
+            WebService.makeRequest(requestQueue, request, params, body, responseListener, errorListener);
+        }
     }
 
     /**
-     * Fetches a list of champions by position in the ID list, which is used as the order
-     * for list views.
-     *
-     * @param min
-     * @param max
-     * @param responseListener
+     * Fetches all the Champions.  Response is in listener
+     * @param requestParams
+     * @param body
+     * @param successListener
      * @param errorListener
      */
-    public void fetchChampionRangeByPosition(int min, int max, Response.Listener<JSONObject> responseListener, Response.ErrorListener errorListener){
-        for(int i = min; i < max; i++){
-            WebService.LoLAppWebserviceRequest request = new WebService.GetChampionData(mDataHash.getChampionIDbyPos(i));
-            //TODO: Grab the bundle parameters from the shared prefs.
-            Bundle params = new Bundle();
-            params.putString(WebService.PARAM_REQUIRED_LOCATION,WebService.location.na.getLocation());
-            params.putString(WebService.PARAM_REQUIRED_LOCALE,WebService.locale.en_US.getLocale());
-            params.putString(WebService.GetChampionData.PARAM_DATA, WebService.ChampData.all.getData());
-            WebService.makeRequest(mContext, requestQueue, request, params, null, responseListener,errorListener);
-        }
+    public void fetchAllChampion(final Bundle requestParams,
+                                 final JSONBody body,
+                                 final Response.Listener<JSONObject> successListener,
+                                 final Response.ErrorListener errorListener) {
+        WebService.LoLAppWebserviceRequest request = new WebService.GetAllChampionData();
+        WebService.makeRequest(requestQueue, request, requestParams, body, successListener, errorListener);
+    }
+
+    /**
+     * Fetches all the champion IDs.  Passes response to listener
+     * @param requestParams
+     * @param body
+     * @param successListener
+     * @param errorListener
+     */
+    public void fetchAllChampionIDs(final Bundle requestParams,
+                                    final JSONBody body,
+                                    final Response.Listener<JSONObject> successListener,
+                                    final Response.ErrorListener errorListener) {
+        WebService.LoLAppWebserviceRequest request = new WebService.GetAllChampionIds();
+        WebService.makeRequest(requestQueue, request, requestParams, body, successListener, errorListener);
     }
 }

@@ -1,12 +1,14 @@
 package com.stanford.lolapp;
 
 import android.app.Application;
-import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Environment;
 
-import com.android.volley.RequestQueue;
-import com.stanford.lolapp.network.VolleyTask;
-import com.stanford.lolapp.util.Consts;
+import com.stanford.lolapp.util.Constants;
+import com.stanford.lolapp.util.FileSystemUtil;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Created by Mark Stanford on 4/26/14.
@@ -31,6 +33,20 @@ public class LoLApp extends Application {
         super.onCreate();
         mInstance = this;
         mDataHash = DataHash.getInstance();
+
+        //Create the dir and check for errors
+
+        FileSystemUtil.createInternalOutputDirectory();
+        Constants.DEBUG_LOG(LOG_TAG, "Internal Created");
+        try {
+            FileSystemUtil.createExternalOutputDirectory();
+            Constants.DEBUG_LOG(LOG_TAG, "External Created");
+            Constants.DEBUG_LOG(LOG_TAG, "IsExternal? " + FileSystemUtil.isExternalStorageAvailable());
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static LoLApp getApp() {
@@ -61,7 +77,7 @@ public class LoLApp extends Application {
      * @since Build 1
      */
     public String getPreference(String key, String defValue) {
-        SharedPreferences prefs = getSharedPreferences(Consts.KEY_SHARED_PREFS, 0);
+        SharedPreferences prefs = getSharedPreferences(Constants.KEY_SHARED_PREFS, 0);
         return prefs.getString(key, (String) defValue);
     }
 
@@ -76,11 +92,55 @@ public class LoLApp extends Application {
      * @since Build 1
      */
     public void setPreference(String key, String value) {
-        SharedPreferences settings = getSharedPreferences(Consts.KEY_SHARED_PREFS, 0);
+        SharedPreferences settings = getSharedPreferences(Constants.KEY_SHARED_PREFS, 0);
         SharedPreferences.Editor editor = settings.edit();
         editor.putString(key, value);
         // Commit the edits!
         editor.commit();
+    }
+
+    /**
+     * Returns the external directory name from preferences.
+     *
+     * @return String of the output directory.
+     * @author mstanford
+     */
+    public String getExternalFileDir(){
+        SharedPreferences sharedprefs = getSharedPreferences(Constants.KEY_SHARED_PREFS,MODE_PRIVATE);
+        return sharedprefs.getString(Constants.EXTERNAL_FILE_DIR_KEY, Constants.EXTERNAL_FILE_DIR);
+    }
+
+
+    /**
+     * Returns the external output directory. It calls the getExternalFileDir and isExternalStorageAvailiable
+     * If we can read and write to external then it returns the external file directory set in shared preferences
+     * which getExternalFileDir retrieves.
+     *
+     * @return the output directory to the application that is used on the
+     *         SDCARD
+     * @throws IOException if the directory cannot be obtained or is not
+     *             available.
+     * @author mstanford
+     */
+    public File getExternalOutputDirectory() throws IOException {
+        try{
+            if (FileSystemUtil.isExternalStorageAvailable())
+                return new File(Environment.getExternalStorageDirectory(),  getExternalFileDir());
+        }catch (RuntimeException e){
+            e.printStackTrace();
+        }
+        throw new IOException(Constants.EXTERNAL_DIR_NOT_AVAIL);
+    }
+
+    /**
+     * Returns the internal output directory
+     *
+     * @return the output directory to the application that is used internally
+     *         by the app.
+     * @author mstanford
+     */
+    public File getInternalOutputDirectory() {
+        return new File(getFilesDir(), Constants.INTERNAL_FILE_DIR);
     }
 
     /**
