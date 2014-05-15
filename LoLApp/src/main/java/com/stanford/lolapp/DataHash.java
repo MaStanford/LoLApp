@@ -35,10 +35,10 @@ public class DataHash {
     private boolean isChampIdsAllLoaded = false;
 
     private DataHash(){
-        this.mChampionIdList = new ChampionIDListDTO();
-        this.mChampionHash = new ChampionListDTO();
-        this.mItemHash = new ItemListDTO();
-        this.mUser =  new User();
+        this.mChampionIdList = new ChampionIDListDTO(); //I think I don't want this to ever be null
+        this.mChampionHash = new ChampionListDTO();     //I think I don't want this to ever be null
+        this.mItemHash = new ItemListDTO();             //I think I don't want this to ever be null
+        this.mUser = null;                              //This can be null I think.
     }
 
     /**
@@ -205,11 +205,11 @@ public class DataHash {
     }
 
     public void deleteChampions(){
-        this.mChampionHash =  new ChampionListDTO();
+        this.mChampionHash =  new ChampionListDTO(); //I think I don't want this to ever be null
     }
 
     public void deleteChampionIDs(){
-        this.mChampionIdList =  new ChampionIDListDTO();
+        this.mChampionIdList =  new ChampionIDListDTO(); //I think I don't want this to ever be null
     }
 
     public void deleteUser(){
@@ -217,6 +217,6 @@ public class DataHash {
     }
 
     public void deleteItems(){
-        this.mItemHash =  new ItemListDTO();
+        this.mItemHash =  new ItemListDTO(); //I think I don't want this to ever be null
     }
 }

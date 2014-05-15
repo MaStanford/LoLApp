@@ -1,5 +1,6 @@
 package com.stanford.lolapp.models;
 
+import com.google.gson.Gson;
 import com.stanford.lolapp.network.WebService;
 
 import java.util.ArrayList;
@@ -229,6 +230,11 @@ public class ItemDTO {
      */
     public String getImageURL(){
         return WebService.ITEM_ICONS + image.getFull();
+    }
+
+    public String toJSON(){
+        Gson gson = new Gson();
+        return gson.toJson(this);
     }
 
     @Override

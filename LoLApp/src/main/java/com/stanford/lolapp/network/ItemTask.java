@@ -37,19 +37,28 @@ public class ItemTask {
     }
 
     /**
+     * Fetches all the items
+     * @param params
+     * @param body
+     * @param responseListener
+     * @param errorListener
+     */
+    public void fetchAllItems(Bundle params,JSONBody body, Response.Listener<JSONObject> responseListener, Response.ErrorListener errorListener){
+        WebService.LoLAppWebserviceRequest request = new WebService.GetAllItems();
+
+        WebService.makeRequest(requestQueue, request, params, body,responseListener,errorListener);
+    }
+
+    /**
      * Fetches a item by ID
      * Pass listeners into this.
      * @param id
      * @param responseListener
      * @param errorListener
      */
-    public void fetchItemById(int id, Response.Listener<JSONObject> responseListener, Response.ErrorListener errorListener){
+    public void fetchItemById(int id,Bundle params,JSONBody body, Response.Listener<JSONObject> responseListener, Response.ErrorListener errorListener){
         WebService.LoLAppWebserviceRequest request = new WebService.GetItem(id);
-        //TODO: Grab the bundle parameters from the shared prefs.
-        Bundle params = new Bundle();
-        params.putString(WebService.PARAM_REQUIRED_LOCATION,WebService.location.na.getLocation());
-        params.putString(WebService.PARAM_REQUIRED_LOCALE,WebService.locale.en_US.getLocale());
-        params.putString(WebService.GetChampionData.PARAM_DATA,WebService.ItemData.all.getParam());
-        WebService.makeRequest(requestQueue, request, params, null,responseListener,errorListener);
+
+        WebService.makeRequest(requestQueue, request, params, body,responseListener,errorListener);
     }
 }

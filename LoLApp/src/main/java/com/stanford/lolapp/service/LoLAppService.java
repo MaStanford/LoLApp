@@ -1,6 +1,9 @@
 package com.stanford.lolapp.service;
 
-import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Intent;
 import android.os.*;
 import android.os.Process;
@@ -13,11 +16,16 @@ import com.android.volley.VolleyError;
 import com.google.gson.Gson;
 import com.stanford.lolapp.DataHash;
 import com.stanford.lolapp.LoLApp;
+import com.stanford.lolapp.R;
+import com.stanford.lolapp.activities.MainActivity;
 import com.stanford.lolapp.models.ChampionIDListDTO;
 import com.stanford.lolapp.models.ChampionListDTO;
+import com.stanford.lolapp.models.ItemListDTO;
 import com.stanford.lolapp.models.User;
 import com.stanford.lolapp.network.ChampionTask;
+import com.stanford.lolapp.network.ItemTask;
 import com.stanford.lolapp.network.JSONBody;
+import com.stanford.lolapp.network.VolleyTask;
 import com.stanford.lolapp.network.WebService;
 import com.stanford.lolapp.util.Constants;
 import com.stanford.lolapp.util.JSONSerializer;
@@ -32,6 +40,7 @@ import java.util.Date;
 /**
  * http://developer.android.com/guide/components/services.html
  * http://developer.android.com/training/run-background-service/create-service.html
+ * http://stackoverflow.com/questions/15524280/service-vs-intent-service
  * <p/>
  * The service should handle network requests and local persistence from those calls.
  * That way the user opening and closing the app doesn't affect the network calls.
@@ -41,19 +50,43 @@ import java.util.Date;
  * <p/>
  * Activities should call on the service to check if there is local persistence for the data required,
  * if not then make a network call to generate that data.
+ *
+ * I chose to go with Service instead of IntentService because I may not want the service
+ * stopped when there is no intents, when there is a bound client.  This may not be possible with
+ * IntentService.
  */
-public class LoLAppService extends IntentService {
+public class LoLAppService extends Service {
 
-    //Intents
-    public static final String INTENT_FETCH_DATA        = "com.stanford.lolapp.fetchData";
-    public static final String INTENT_LOADING_DATA      = "com.stanford.lolapp.loadingData";
-    public static final String INTENT_DATA_LOADED       = "com.stanford.lolapp.dataLoaded";
-    public static final String INTENT_DATA_EXPIRED      = "com.stanford.lolapp.dataExpired";
+    //Actions for network calls, put bundle in intent also
+    public static final String ACTION_FETCH_CHAMPIONS               = "com.stanford.lolapp.actionFetchChampions";
+    public static final String ACTION_FETCH_CHAMPIONIDS             = "com.stanford.lolapp.actionFetchIDs";
+    public static final String ACTION_FETCH_ITEMS                   = "com.stanford.lolapp.actionFetchItems";
+    public static final String ACTION_FETCH_GAMES                   = "com.stanford.lolapp.actionFetchGames";
+    public static final String ACTION_FETCH_MASTERYRUNES            = "com.stanford.lolapp.actionFetchMasteryRunes";
+
+    public static final String EXTRA_BUNDLE                         = "com.stanford.lolapp.extraBundle";
+
+    //Actions that fetches are complete.  Bind to service and grab data.
+    public static final String ACTION_FETCH_CHAMPIONS_DONE          = "com.stanford.lolapp.actionFetchChampionsDone";
+    public static final String ACTION_FETCH_CHAMPIONIDS_DONE        = "com.stanford.lolapp.actionFetchIDsDone";
+    public static final String ACTION_FETCH_ITEMS_DONE              = "com.stanford.lolapp.actionFetchItemsDone";
+    public static final String ACTION_FETCH_GAMES_DONE              = "com.stanford.lolapp.actionFetchGamesDone";
+    public static final String ACTION_FETCH_MASTERYRUNES_DONE       = "com.stanford.lolapp.actionFetchMasteryRunesDone";
 
     //Constants
     public static final long TIME_TO_LIVE_USER = 259200000; //3 days
     public static final long TIME_TO_LIVE_STATIC = 604800000;//7 days
     private final String TAG = "LoLAppService";
+
+    //String
+    private static final String NOTIFICATION_FETCH_CHAMPIONS    = "Fetching Champion data from riot servers.";
+    private static final String NOTIFICATION_FETCH_IDS          = "Fetching Champion IDs from riot servers.";
+    private static final String NOTIFICATION_FETCH_ITEMS        = "Fetching Item data from riot servers.";
+    private static final String NOTIFICATION_FETCH_GAMES        = "Fetching Game data from riot servers.";
+    private static final String NOTIFICATION_FETCH_SUMMONERS    = "Fetching Summoner data from riot servers.";
+    private static final String NOTIFICATION_FETCH_USER         = "Fetching User data from server.";
+    private static final String NOTIFICATION_FETCH_RUNES        = "Fetching Rune/Mastery data from server.";
+
 
     //Fields
     private Looper mServiceLooper;
@@ -68,10 +101,6 @@ public class LoLAppService extends IntentService {
     //Singleton references
     private static LoLApp mContext;
     private static DataHash mDataHash;
-
-    public LoLAppService() {
-        super("LoLAppService");
-    }
 
     /**
      * ***********************************************
@@ -95,6 +124,65 @@ public class LoLAppService extends IntentService {
         return mDataHash;
     }
 
+    /**
+     * Checks if the local persistence or volatile memory contains the User Object
+     * @return
+     */
+    public boolean isUserAvailible(){
+        if(isUserSaved() && mDataHash.getUser() != null){ //User is local and volatile
+            return true;
+        } else if(isUserSaved()){  //User is only local, set the volatile
+            mDataHash.setUser(getUserFromFile(getUserFileName()));
+            return true;
+        } else { //User is not active, I do not see a case where it is volatile and not local
+            return false;
+        }
+    }
+
+    /**
+     * checks if the local persistence or volatile memory contains the the ChampionList
+     * @return
+     */
+    public boolean isChampionListAvailible(){
+        if(isChampionsSaved() && mDataHash.getChampionList().getSize() > 0){ //Champs is local and volatile
+            return true;
+        } else if(isChampionsSaved()){  //User is only local, set the volatile
+            mDataHash.setChampionList(getChampionsFromFile(getChampionsFileName()));
+            return true;
+        } else { //champs is not available, I do not see a case where it is volatile and not local
+            return false;
+        }
+    }
+
+    /**
+     * Check is the local persistence or volatile memory contains the championIDlist
+     * @return
+     */
+    public boolean isChampionIdListAvailible(){
+        if(isChampionIdsSaved() && mDataHash.getChampionIdList().getSize() > 0){ //IDs are local and volatile
+            return true;
+        } else if(isChampionIdsSaved()){  //IDs are only local
+            mDataHash.setChampionIdList(getChampionIdsFromFile(getChampionIdsFileName()));
+            return true;
+        } else { //IDs are not available, I do not see a case where it is volatile and not local
+            return false;
+        }
+    }
+
+    /**
+     * Check is the local persistence or volatile memory contains the championIDlist
+     * @return
+     */
+    public boolean isItemsAvailible(){
+        if(isItemsSaved() && mDataHash.getItemList().getSize() > 0){ //IDs are local and volatile
+            return true;
+        } else if(isChampionIdsSaved()){  //IDs are only local
+            mDataHash.setChampionIdList(getChampionIdsFromFile(getChampionIdsFileName()));
+            return true;
+        } else { //IDs are not available, I do not see a case where it is volatile and not local
+            return false;
+        }
+    }
 
     /**
      * ***********************************************
@@ -103,12 +191,39 @@ public class LoLAppService extends IntentService {
      */
 
     /**
+     * Called from intent handler.
+     *
+     * Pass the bundle along with the intent
+     */
+    private void fetchChampions(Bundle params){
+        getAllChampions(VolleyTask.getRequestQueue(mContext),
+                        null,
+                        params,
+                        null,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                //Send broadcast Saying request is done
+                                //TODO: Broadcast intent for new data, stop service, stop notification
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                //Send broadcast saying request is done
+                                //TODO: Broadcast intent for new data, stop service, stop notification
+                            }
+                        }
+        );
+    }
+
+    /**
      * Fetches and stores a list of all the champions
      * Saves the list to local persistence.
      * Stores list to volatile memory in the dataHash Singleton
      * The app should call these with intents and startService.
      */
-    private void getAllChampions(
+    public void getAllChampions(
             final RequestQueue queue,
             final WebService.WebserviceRequest serviceRequest,
             final Bundle requestParams,
@@ -152,7 +267,7 @@ public class LoLAppService extends IntentService {
      * Fetches and stores all the championIDs
      * The app should call these with intents and startService.
      */
-    private void getAllChampionIds(final Bundle requestParams,
+    public void getAllChampionIds(final Bundle requestParams,
                                   final JSONBody body,
                                   final Response.Listener<JSONObject> successListener,
                                   final Response.ErrorListener errorListener) {
@@ -172,7 +287,8 @@ public class LoLAppService extends IntentService {
                         //Set response to persistent memory
                         saveChampionIdsFile(champList);
                         //Callback to activity
-                        successListener.onResponse(response);
+                        if(successListener != null)
+                            successListener.onResponse(response);
                         //set loading to false
                         mIsLoadingNetwork = false;
                     }
@@ -181,11 +297,73 @@ public class LoLAppService extends IntentService {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.d(TAG, error.toString());
-                        errorListener.onErrorResponse(error);
+                        if(errorListener != null)
+                            errorListener.onErrorResponse(error);
                         mIsLoadingNetwork = false;
                     }
                 }
         );
+    }
+
+    /**
+     * Called from intent handler.
+     *
+     * Pass the bundle along with the intent
+     */
+    private void fetchItems(Bundle params){
+        getAllItems(params,
+                    null,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            //Send broadcast Saying request is done
+                            //TODO: Broadcast intent for new data, stop service, stop notification
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            //Send broadcast saying request is done
+                        }
+                    }
+        );
+    }
+    public void getAllItems(final Bundle requestParams,
+                            final JSONBody body,
+                            final Response.Listener<JSONObject> successListener,
+                            final Response.ErrorListener errorListener) {
+
+        mIsLoadingNetwork = true;
+        ItemTask mItemTask = ItemTask.getInstance();
+
+        mItemTask.fetchAllItems(requestParams,body,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        //Parse the response
+                        Gson gson = new Gson();
+                        ItemListDTO itemList = gson.fromJson(response.toString(), ItemListDTO.class);
+                        //Set response to volatile memory
+                        mDataHash.setItemList(itemList);
+                        //Set response to persistent memory
+                        saveItemsFile(itemList);
+                        //Callback to activity
+                        if(successListener != null)
+                            successListener.onResponse(response);
+                        //set loading to false
+                        mIsLoadingNetwork = false;
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d(TAG, error.toString());
+                        if(errorListener != null)
+                            errorListener.onErrorResponse(error);
+                        mIsLoadingNetwork = false;
+                    }
+                }
+                );
     }
 
     /**
@@ -199,7 +377,7 @@ public class LoLAppService extends IntentService {
      *
      * @return
      */
-    public File getUserFileName() {
+    private File getUserFileName() {
         return new File(LoLApp.getApp().getInternalOutputDirectory()
                 + Constants.FILE_NAME_USER);
     }
@@ -208,14 +386,27 @@ public class LoLAppService extends IntentService {
      * Returns the name of the Champions file
      * @return
      */
-    public File getChampionsFileName() {
+    private File getChampionsFileName() {
         return new File(LoLApp.getApp().getInternalOutputDirectory()
                 + Constants.FILE_NAME_CHAMPIONS);
     }
 
-    public File getChampionIdsFileName(){
+    /**
+     * Gets the filename of championIDs file
+     * @return
+     */
+    private File getChampionIdsFileName(){
         return new File(LoLApp.getApp().getInternalOutputDirectory()
                 + Constants.FILE_NAME_CHAMPIONID);
+    }
+
+    /**
+     * Returns the filename of the Items file
+     * @return
+     */
+    private File getItemFileName(){
+        return new File(LoLApp.getApp().getInternalOutputDirectory()
+                + Constants.FILE_NAME_ITEMS);
     }
 
     /**
@@ -223,8 +414,8 @@ public class LoLAppService extends IntentService {
      *
      * @return
      */
-    public Long getUserFileDate() {
-        if (isActiveUser()) {
+    private Long getUserFileDate() {
+        if (isUserSaved()) {
             File mFile = getUserFileName();
             return mFile.lastModified();
         }
@@ -235,7 +426,7 @@ public class LoLAppService extends IntentService {
      * returns the date of last mod of champions file
      * @return
      */
-    public Long getChampionsFileDate() {
+    private Long getChampionsFileDate() {
         if (isChampionsSaved()) {
             File mFile = getChampionsFileName();
             return mFile.lastModified();
@@ -243,9 +434,25 @@ public class LoLAppService extends IntentService {
         return null;
     }
 
-    public Long getChampionsIdsFileDate(){
+    /**
+     * Return the last modified date of the champion Id file
+     * @return
+     */
+    private Long getChampionsIdsFileDate(){
         if (isChampionIdsSaved()) {
             File mFile = getChampionIdsFileName();
+            return mFile.lastModified();
+        }
+        return null;
+    }
+
+    /**
+     * Returns the last modified date of the items file
+     * @return
+     */
+    private Long getItemsFileDate(){
+        if (isItemsSaved()) {
+            File mFile = getItemFileName();
             return mFile.lastModified();
         }
         return null;
@@ -256,11 +463,12 @@ public class LoLAppService extends IntentService {
      * @param fileName
      * @return
      */
-    public User getUserFile(File fileName) {
-        if (isActiveUser()) {
+    private User getUserFromFile(File fileName) {
+        if (isUserSaved()) {
             try {
                 JSONObject jsonObject = JSONSerializer.loadJSONFile(fileName);
                 User mUser = new User(jsonObject);
+                mDataHash.setUser(mUser);
                 return mUser;
             } catch (IOException e) {
                 //Probably means that the User file doesn't exist
@@ -280,7 +488,7 @@ public class LoLAppService extends IntentService {
      * @param fileName
      * @return
      */
-    public ChampionListDTO getChampionsFile(File fileName) {
+    private ChampionListDTO getChampionsFromFile(File fileName) {
         if (isChampionsSaved()) {
             try {
                 String json = JSONSerializer.loadStringFile(fileName);
@@ -297,7 +505,12 @@ public class LoLAppService extends IntentService {
         return null;
     }
 
-    public ChampionIDListDTO getChampionIdListFile(File fileName){
+    /**
+     * returns the championIDlist from file and sets it to volatile
+     * @param fileName
+     * @return
+     */
+    private ChampionIDListDTO getChampionIdsFromFile(File fileName){
         if (isChampionIdsSaved()) {
             try {
                 String json = JSONSerializer.loadStringFile(fileName);
@@ -305,6 +518,28 @@ public class LoLAppService extends IntentService {
                 ChampionIDListDTO champList = gson.fromJson(json,ChampionIDListDTO.class);
                 mDataHash.setChampionIdList(champList);
                 return champList;
+            } catch (IOException e) {
+                //Probably means that the Champ file doesn't exist
+                e.printStackTrace();
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the items from saved file and sets to volatile
+     * @param filename
+     * @return
+     */
+    private ItemListDTO getItemsFromFile(File filename){
+        if (isItemsSaved()) {
+            try {
+                String json = JSONSerializer.loadStringFile(filename);
+                Gson gson = new Gson();
+                ItemListDTO itemList = gson.fromJson(json,ItemListDTO.class);
+                mDataHash.setItemList(itemList);
+                return itemList;
             } catch (IOException e) {
                 //Probably means that the Champ file doesn't exist
                 e.printStackTrace();
@@ -364,13 +599,31 @@ public class LoLAppService extends IntentService {
     }
 
     /**
+     * Saves the parameter in the Items File
+     * @param items
+     * @return
+     */
+    public boolean saveItemsFile(ItemListDTO items){
+        try {
+            JSONSerializer.saveJSON(items.toJSON(), getItemFileName());
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
      * Checks to see if there is an active user file.  When the user logs out, the file should be deleted.
      * @return
      */
-    public boolean isActiveUser() {
+    private boolean isUserSaved() {
         File mFile = getUserFileName();
         if (mFile.exists()) {
-            if (isUserExpired()) {
+            if (isUserFileExpired()) {
                 logOutUser();
                 return false;
             }
@@ -383,10 +636,10 @@ public class LoLAppService extends IntentService {
      * Checks to see if there is a champions file
      * @return
      */
-    public boolean isChampionsSaved(){
+    private boolean isChampionsSaved(){
         File mFile = getChampionsFileName();
         if (mFile.exists()) {
-            if (isChampionsExpired()) {
+            if (isChampionsFileExpired()) {
                 deleteChampions();
                 return false;
             }
@@ -395,11 +648,23 @@ public class LoLAppService extends IntentService {
         return false;
     }
 
-    public boolean isChampionIdsSaved(){
+    private boolean isChampionIdsSaved(){
         File mFile = getChampionIdsFileName();
         if (mFile.exists()) {
-            if (isChampionIdsExpired()) {
+            if (isChampionIdsFileExpired()) {
                 deleteChampionIds();
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isItemsSaved(){
+        File mFile = getItemFileName();
+        if (mFile.exists()) {
+            if (isItemsFileExpired()) {
+                deletItemsFile();
                 return false;
             }
             return true;
@@ -412,7 +677,7 @@ public class LoLAppService extends IntentService {
      *
      * @return
      */
-    public boolean isUserExpired() {
+    private boolean isUserFileExpired() {
         long userTime = getUserFileDate();
         Date now = new Date();
         if ((now.getTime() - userTime) > TIME_TO_LIVE_USER)
@@ -424,7 +689,7 @@ public class LoLAppService extends IntentService {
      * Checks to see if the champions static data is expired
      * @return
      */
-    public boolean isChampionsExpired() {
+    private boolean isChampionsFileExpired() {
         long champTime = getChampionsFileDate();
         Date now = new Date();
         if ((now.getTime() - champTime) > TIME_TO_LIVE_STATIC)
@@ -432,7 +697,11 @@ public class LoLAppService extends IntentService {
         return false;
     }
 
-    public boolean isChampionIdsExpired(){
+    /**
+     * Checks if the championIDs file is expired.
+     * @return
+     */
+    private boolean isChampionIdsFileExpired(){
         long champTime = getChampionsIdsFileDate();
         Date now = new Date();
         if ((now.getTime() - champTime) > TIME_TO_LIVE_STATIC)
@@ -441,13 +710,25 @@ public class LoLAppService extends IntentService {
     }
 
     /**
+     * Checks if the items file is expired
+     * @return
+     */
+    private boolean isItemsFileExpired(){
+        long itemTime = getItemsFileDate();
+        Date now = new Date();
+        if ((now.getTime() - itemTime) > TIME_TO_LIVE_STATIC)
+            return true; //champ file is expired
+        return false;
+    }
+
+    /**
      * Checks to see if there is an active user, and if there is, delete the file.
      */
-    public void logOutUser() {
-        if (isActiveUser()) {
+    private void logOutUser() {
+        if (isUserSaved()) {
             try {
                 File file = getUserFileName();
-                if (file.delete()) {
+                if (file.delete()) {//I don't see why this would ever be false
                     mDataHash.deleteUser();
                 } else {
                     mDataHash.deleteUser();
@@ -461,11 +742,11 @@ public class LoLAppService extends IntentService {
     /**
      * Deletes the championslist file
      */
-    public void deleteChampions(){
+    private void deleteChampions(){
         if (isChampionsSaved()) {
             try {
                 File file = getChampionsFileName();
-                if (file.delete()) {
+                if (file.delete()) {//I don't see why this would ever be false
                     mDataHash.deleteChampions();
                 } else {
                     mDataHash.deleteChampions();
@@ -476,14 +757,35 @@ public class LoLAppService extends IntentService {
         }
     }
 
-    public void deleteChampionIds(){
+    /**
+     * Deletes the IDs list
+     */
+    private void deleteChampionIds(){
         if (isChampionIdsSaved()) {
             try {
                 File file = getChampionIdsFileName();
-                if (file.delete()) {
+                if (file.delete()) {//I don't see why this would ever be false
                     mDataHash.deleteChampionIDs();
                 } else {
                     mDataHash.deleteChampionIDs();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Deletes the items file
+     */
+    private void deletItemsFile(){
+        if (isItemsSaved()) {
+            try {
+                File file = getItemFileName();
+                if (file.delete()) { //I don't see why this would ever be false
+                    mDataHash.deleteItems();
+                } else {
+                    mDataHash.deleteItems();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -497,6 +799,18 @@ public class LoLAppService extends IntentService {
      * *************Service Methods*******************
      * ***********************************************
      */
+
+//    /**
+//     * This is needed if this was an IntentService
+//     * The service will stopSelf when this returns.
+//     * I'm not using IntentService because I will need to bind and IntentService is not the ideal
+//     * solution for this.
+//     * @param intent
+//     */
+//    @Override
+//    protected void onHandleIntent(Intent intent) {
+//    }
+
     // Handler that receives messages from the thread
     private final class ServiceHandler extends Handler {
         public ServiceHandler(Looper looper) {
@@ -505,7 +819,14 @@ public class LoLAppService extends IntentService {
 
         @Override
         public void handleMessage(Message msg) {
-            stopSelf(msg.arg1);
+            /*
+             *  I actually don't need to have a pipeline thread here since volley handles all
+             *  the concurrency stuff.  This actually serves no purpose except to get me practiced in
+             *  writing the boiler plate for concurrent operations in Android.  Fun fact:
+             *  Android Activities have a Looper/pipeline thread handle all the UI interactions and
+             *  when you grab a handler in an activity it implicitly binds to the looper :D
+             */
+            Log.d(TAG,"HandleMessage called. ID: " + msg.arg1);
         }
     }
 
@@ -513,7 +834,7 @@ public class LoLAppService extends IntentService {
     public void onCreate() {
         super.onCreate();
 
-        HandlerThread thread = new HandlerThread("ServiceStartArguments", Process.THREAD_PRIORITY_DEFAULT);
+        HandlerThread thread = new HandlerThread(TAG, Process.THREAD_PRIORITY_DEFAULT);
         thread.start();
 
         // Get the HandlerThread's Looper and use it for our Handler
@@ -525,29 +846,46 @@ public class LoLAppService extends IntentService {
     }
 
     /**
-     * Intent passing is good for notifications that don't have to be fast.
-     * It can take an intent a couple hundred milliseconds to get from the service to the app.
-     *
+     * onStartCommand overrides the bindservice lifecycle
+     * http://developer.android.com/reference/android/content/Context.html#startService(android.content.Intent)
      * @param intent
+     * @param flags
+     * @param startId
+     * @return
      */
     @Override
-    protected void onHandleIntent(Intent intent) {
-        // Gets data from the incoming Intent
-        String dataString = intent.getDataString();
-        // Do work here, based on the contents of dataString
-    }
-
-    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Toast.makeText(this, "service starting", Toast.LENGTH_SHORT).show();
+        Log.d(TAG,"onStartCommand called.  ID: " + startId);
 
-        // For each start request, send a message to start a job and deliver the
-        // start ID so we know which request we're stopping when we finish the job
+        //Set the first arg as the startID
+        //http://developer.android.com/guide/components/services.html#Stopping
+        //This doesn't actually do anything, I just wanted to practice the boiler plate.
         Message msg = mServiceHandler.obtainMessage();
         msg.arg1 = startId;
         mServiceHandler.sendMessage(msg);
 
-        // If we get killed, after returning from here, restart
+        Bundle params = intent.getBundleExtra(EXTRA_BUNDLE);
+        //Check action to see what to do now
+        switch(intent.getAction()){
+            case(ACTION_FETCH_CHAMPIONIDS):
+                showNotification(NOTIFICATION_FETCH_IDS);
+                break;
+            case(ACTION_FETCH_CHAMPIONS):
+                showNotification(NOTIFICATION_FETCH_CHAMPIONS);
+                fetchChampions(params);
+                break;
+            case(ACTION_FETCH_GAMES):
+                showNotification(NOTIFICATION_FETCH_GAMES);
+                break;
+            case(ACTION_FETCH_ITEMS):
+                showNotification(NOTIFICATION_FETCH_ITEMS);
+                fetchItems(params);
+                break;
+            case(ACTION_FETCH_MASTERYRUNES):
+                showNotification(NOTIFICATION_FETCH_RUNES);
+                break;
+        }
+
         return START_STICKY;
     }
 
@@ -566,6 +904,27 @@ public class LoLAppService extends IntentService {
         if (!mIsLoadingFileIO && !mIsLoadingNetwork && !mBound)
             return true;
         return false;
+    }
+
+    /**
+     ************************************************
+     *****************Note Methods*******************
+     ************************************************
+     */
+
+    private void showNotification(String msg) {
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        // In this sample, we'll use the same text for the ticker and the expanded notification
+        CharSequence text = msg;
+        // Set the icon, scrolling text and timestamp
+        Notification notification = new Notification(R.drawable.ic_launcher, text, System.currentTimeMillis());
+        // The PendingIntent to launch our activity if the user selects this notification
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
+        // Set the info for the views that show in the notification panel.
+        notification.setLatestEventInfo(this, getText(R.string.service_data_fetch_label), text, contentIntent);
+        // Send the notification.
+        // We use a layout id because it is a unique number.  We use it later to cancel.
+        nm.notify(R.string.service_data_fetch, notification);
     }
 
     /**
@@ -601,6 +960,9 @@ public class LoLAppService extends IntentService {
     @Override
     public boolean onUnbind(Intent intent) {
         mBound = false;
+        if(canDestroy()){
+            this.stopSelf();
+        }
         return super.onUnbind(intent);
     }
 

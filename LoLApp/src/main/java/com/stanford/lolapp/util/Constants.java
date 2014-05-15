@@ -15,6 +15,7 @@ public class Constants {
     public static final String FILE_NAME_USER           = "User.LoL";
     public static final String FILE_NAME_CHAMPIONS      = "Champions.LoL";
     public static final String FILE_NAME_CHAMPIONID     = "ChampionIDs.LoL";
+    public static final String FILE_NAME_ITEMS          = "Items.LoL";
 
     //Shared Pref Keys
     public static final String KEY_SHARED_PREFS         = "com.stanford.lolapp.keySharedPrefs";

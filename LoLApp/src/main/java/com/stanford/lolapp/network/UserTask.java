@@ -11,8 +11,6 @@ import org.json.JSONObject;
 
 /**
  * Created by Mark Stanford on 5/5/14.
- *
- * I would really prefer that only the service use this class
  */
 public class UserTask {
 

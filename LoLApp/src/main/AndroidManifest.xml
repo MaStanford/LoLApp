@@ -15,15 +15,15 @@
         <activity
             android:name="com.stanford.lolapp.activities.LoginActivity"
             android:label="@string/title_activity_login"
-            android:windowSoftInputMode="adjustResize|stateVisible"
-            android:noHistory="true">
+            android:noHistory="true"
+            android:windowSoftInputMode="adjustResize|stateVisible" >
         </activity>
         <activity
             android:name="com.stanford.lolapp.activities.CreateUserActivity"
             android:label="@string/title_activity_create_user"
+            android:noHistory="true"
             android:parentActivityName="com.stanford.lolapp.activities.LoginActivity"
-            android:windowSoftInputMode="adjustResize|stateVisible"
-            android:noHistory="true">
+            android:windowSoftInputMode="adjustResize|stateVisible" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="LoginActivity" />
@@ -38,7 +38,7 @@
         <activity
             android:name="com.stanford.lolapp.activities.LaunchActivity"
             android:label="@string/title_activity_start"
-            android:noHistory="true">
+            android:noHistory="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -5,7 +5,9 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
@@ -28,6 +30,7 @@ import com.stanford.lolapp.interfaces.INoticeDialogListener;
 import com.stanford.lolapp.interfaces.IServiceCallback;
 import com.stanford.lolapp.interfaces.OnFragmentInteractionListener;
 import com.stanford.lolapp.service.LoLAppService;
+import com.stanford.lolapp.util.Constants;
 
 
 public class MainActivity extends Activity
@@ -47,7 +50,7 @@ public class MainActivity extends Activity
     public static final int DEEPS = 5;
     public static final int BUILDER = 6;
 
-    private static final String LOG_TAG = "MainActivity";
+    private static final String TAG = "MainActivity";
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -79,20 +82,39 @@ public class MainActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getFragmentManager().findFragmentById(R.id.navigation_drawer);
+        mNavigationDrawerFragment = (NavigationDrawerFragment) getFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
 
         // Set up the drawer.
-        mNavigationDrawerFragment.setUp(
-                R.id.navigation_drawer,
-                (DrawerLayout) findViewById(R.id.drawer_layout));
+        mNavigationDrawerFragment.setUp(R.id.navigation_drawer,(DrawerLayout) findViewById(R.id.drawer_layout));
+    }
+
+    @Override
+    protected void onStart(){
+        super.onStart();
+        /****************************************
+         * SERVICES
+         ***************************************/
+        // Bind to LocalService
+        Intent intent = new Intent(this, LoLAppService.class);
+        bindService(intent, mConnection, Context.BIND_ABOVE_CLIENT);
+        Constants.DEBUG_LOG(TAG, "Service: " + mService);
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+        //Unbind the Services
+        if (mBound) {
+            unbindService(mConnection);
+            mBound = false;
+        }
     }
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
 
-        Log.d(LOG_TAG, "Position: " + position);
+        Log.d(TAG, "Position: " + position);
 
         Fragment mFragment = null;
 
@@ -101,22 +123,22 @@ public class MainActivity extends Activity
                 mFragment = HomeFragment.newInstance(HOME);
                 break;
             case CHAMPIONS:
-                mFragment = ChampionFragment.newInstance("Turd", "Bucket");
+                mFragment = ChampionFragment.newInstance(CHAMPIONS);
                 break;
             case ITEMS:
-                mFragment = ItemFragment.newInstance("Chimp", "Ape");
+                mFragment = ItemFragment.newInstance(ITEMS);
                 break;
             case SUMMONERS:
-                mFragment = SummonerFragment.newInstance("Albert", "OneStone");
+                mFragment = SummonerFragment.newInstance(SUMMONERS);
                 break;
             case GAMES:
-                mFragment = GamesFragment.newInstance("Scruff", "Mcgruff");
+                mFragment = GamesFragment.newInstance(GAMES);
                 break;
             case DEEPS:
-                mFragment = DeepsFragment.newInstance("Ali", "Baba");
+                mFragment = DeepsFragment.newInstance(DEEPS);
                 break;
             case BUILDER:
-                mFragment = BuilderFragment.newInstance("3 Legged", "Dog");
+                mFragment = BuilderFragment.newInstance(BUILDER);
                 break;
             default:
                 mFragment = HomeFragment.newInstance(HOME);
@@ -197,7 +219,9 @@ public class MainActivity extends Activity
 
     @Override
     public void onFragmentInteraction(Bundle bundle) {
-
+        Intent mIntent = new Intent(this,LoLAppService.class);
+        mIntent.setAction(LoLAppService.ACTION_FETCH_CHAMPIONS);
+        startService(mIntent);
     }
 
     /**

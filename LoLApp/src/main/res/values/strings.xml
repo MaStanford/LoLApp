@@ -38,9 +38,15 @@
     <string name="network_error_positive">Connected</string>
     <string name="network_error_negative">Exit</string>
 
-    <!-- Action String-->
+    <!-- Action String -->
     <string name="action_timers">Timers</string>
     <string name="action_settings">Settings</string>
     <string name="action_logout">Logout</string>
+    <string name="title_activity_tester_webby_poop">testerWebbyPoop</string>
+    <string name="hello_world">Hello world!</string>
+
+    <!-- Note Strings -->
+    <string name="service_data_fetch">Fetching Data from Riot Servers</string>
+    <string name="service_data_fetch_label">Network call to Riot Servers...</string>
 
 </resources>

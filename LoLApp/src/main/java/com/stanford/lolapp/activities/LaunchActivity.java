@@ -36,6 +36,8 @@ public class LaunchActivity extends Activity implements INoticeDialogListener {
             LoLAppService.LocalBinder binder = (LoLAppService.LocalBinder) service;
             mService = binder.getService();
             mBound = true;
+
+            checkConnection();
         }
         public void onServiceDisconnected(ComponentName className) {
             mBound = false;
@@ -46,33 +48,23 @@ public class LaunchActivity extends Activity implements INoticeDialogListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
-
-        checkConnection();
-
-        //TODO: Do all the checking to see if data is loaded, if wifi is connected and what to load
-        //TODO: Start loading data and display a loading screen if needed.
-        //TODO: If not all data is loading, and not in wifi mode, then don't load all data, we will load what is needed as it's needed.
-        //TODO: If wifi is connected then we can download all the necessary data all at once.
-        //TODO: Figure out best practice for fetching data as needed vs. fetching all at once, fetching as needed gives a UI delay but doesn't waste resources.
     }
 
     @Override
     protected void onStart(){
         super.onStart();
-        /****************************************
-         * SERVICES
-         ***************************************/
-        // Bind to LocalService
         Intent intent = new Intent(this, LoLAppService.class);
-        //http://developer.android.com/guide/components/bound-services.html
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        Constants.DEBUG_LOG(TAG, "Service: " + mService);
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
     }
 
     @Override
     protected void onStop(){
         super.onStop();
-        //Unbind the Services
         if (mBound) {
             unbindService(mConnection);
             mBound = false;
@@ -93,9 +85,11 @@ public class LaunchActivity extends Activity implements INoticeDialogListener {
 
     private void checkUser(){
         //Check if user is null, if null send to login, if not null send to main
-
-        //Grab user object here
-
+        if(mService.isUserAvailible()) {
+            Intent mIntent = new Intent(this,MainActivity.class);
+            mIntent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+            startActivity(mIntent);
+        }
         //If no user object then send to log in
         Intent mIntent = new Intent(this,LoginActivity.class);
         mIntent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);

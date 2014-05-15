@@ -1,5 +1,6 @@
 package com.stanford.lolapp.models;
 
+import com.google.gson.Gson;
 import com.stanford.lolapp.exceptions.ItemNotFoundException;
 
 import java.util.ArrayList;
@@ -109,6 +110,11 @@ public class ItemListDTO {
         for(String key: data.keySet()){
             itemNames.add(key);
         }
+    }
+
+    public String toJSON(){
+        Gson gson = new Gson();
+        return gson.toJson(this);
     }
 
     @Override

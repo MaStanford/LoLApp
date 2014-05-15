@@ -15,7 +15,6 @@ import org.json.JSONObject;
  * Use this calls to make network calls when local persistence or data structures do not contain the
  * required data.
  * <p/>
- * I would prefer that only the service use this class.
  */
 public class ChampionTask {
 

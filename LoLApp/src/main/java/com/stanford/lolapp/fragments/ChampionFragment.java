@@ -41,18 +41,12 @@ import org.json.JSONObject;
  */
 public class ChampionFragment extends Fragment implements AbsListView.OnItemClickListener{
 
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
     private static final String TAG = "ChampionFragment";
-
-    private String mParam1;
-    private String mParam2;
-
     private OnFragmentInteractionListener mListener;
-
+    private static final String ARG_PARAM1 = "param1";
     private ProgressBar mProgressBar;
     private boolean mIsLoading = false;
-
+    private int mParam1;
     private LoLAppService mService;
 
     /**
@@ -68,11 +62,10 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
     private FragmentManager fragmentManager;
 
 
-    public static ChampionFragment newInstance(String param1, String param2) {
+    public static ChampionFragment newInstance(int param1) {
         ChampionFragment fragment = new ChampionFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putInt(ARG_PARAM1,param1);
         fragment.setArguments(args);
         return fragment;
     }
@@ -91,9 +84,11 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         fragmentManager = getFragmentManager();
 
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            mParam1 = getArguments().getInt(ARG_PARAM1);
         }
+
+        //Check if data is stored volatile
+
 
         mAdapter = new ChampionListAdapter(getActivity());
     }
@@ -137,64 +132,9 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
     /**
      * Loads the data
      */
-
     public void loadData(){
-
         mIsLoading = true;
         mProgressBar.setVisibility(ProgressBar.VISIBLE);
-
-        /**
-         * Load all the Champion ID
-         */
-        // Load the request
-        RequestQueue requestQueue = VolleyTask.getRequestQueue(getActivity());
-
-        //Grab a champion for PoC
-        WebService.LoLAppWebserviceRequest request = new WebService.GetAllChampionIds();
-
-        Bundle params = new Bundle();
-        params.putString(WebService.PARAM_REQUIRED_LOCATION,WebService.location.na.getLocation());
-
-        WebService.makeRequest(requestQueue, request, params, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d(TAG,error.toString());
-                    }
-                }
-        );
-
-        // Load the request
-        requestQueue = VolleyTask.getRequestQueue(getActivity());
-
-        //Grab a champion for PoC
-        request = new WebService.GetAllChampionData();
-
-        params = new Bundle();
-
-        params.putString(WebService.PARAM_REQUIRED_LOCATION,WebService.location.na.getLocation());
-        params.putString(WebService.PARAM_REQUIRED_LOCALE,WebService.locale.en_US.getLocale());
-        params.putString(WebService.GetChampionData.PARAM_DATA,WebService.ChampData.all.getData());
-
-        WebService.makeRequest(requestQueue, request, params, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        onDoneLoadData();
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d(TAG,error.toString());
-                    }
-                }
-        );
     }
 
     /**
