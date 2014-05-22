@@ -44,7 +44,7 @@ public class ItemTask {
      * @param errorListener
      */
     public void fetchAllItems(Bundle params,JSONBody body, Response.Listener<JSONObject> responseListener, Response.ErrorListener errorListener){
-        WebService.LoLAppWebserviceRequest request = new WebService.GetAllItems();
+        LoLAppWebserviceRequest request = new Requests.GetAllItems();
 
         WebService.makeRequest(requestQueue, request, params, body,responseListener,errorListener);
     }
@@ -57,7 +57,7 @@ public class ItemTask {
      * @param errorListener
      */
     public void fetchItemById(int id,Bundle params,JSONBody body, Response.Listener<JSONObject> responseListener, Response.ErrorListener errorListener){
-        WebService.LoLAppWebserviceRequest request = new WebService.GetItem(id);
+        LoLAppWebserviceRequest request = new Requests.GetItem(id);
 
         WebService.makeRequest(requestQueue, request, params, body,responseListener,errorListener);
     }

@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.NetworkImageView;
@@ -14,6 +15,8 @@ import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
 import com.stanford.lolapp.models.ItemDTO;
 import com.stanford.lolapp.network.VolleyTask;
+import com.stanford.lolapp.util.Constants;
+import com.stanford.lolapp.views.VolleyImageView;
 
 import java.util.ArrayList;
 
@@ -96,7 +99,7 @@ public class ItemListAdapter extends BaseAdapter{
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        ViewHolder holder;
+        final ViewHolder holder;
 
         if(convertView == null){
             holder = new ViewHolder();
@@ -105,8 +108,8 @@ public class ItemListAdapter extends BaseAdapter{
 
             holder.name = (TextView) convertView.findViewById(R.id.tv_item_name);
             holder.tag = (TextView) convertView.findViewById(R.id.tv_item_descript);
-            holder.icon = (NetworkImageView) convertView.findViewById(R.id.iv_item_list);
-
+            holder.icon = (VolleyImageView) convertView.findViewById(R.id.iv_item_list);
+            holder.pbar = (ProgressBar) convertView.findViewById(R.id.item_image_progress);
 
             convertView.setTag(holder);
         }else{
@@ -123,6 +126,20 @@ public class ItemListAdapter extends BaseAdapter{
             holder.name.setText(item.getName());
             holder.tag.setText(item.getTags().toString());
             holder.icon.setImageUrl(item.getImageURL(), VolleyTask.getImageLoader(mContext));
+            holder.icon.setErrorImageResId(R.drawable.ic_launcher);
+            //set observer to view
+            holder.icon.setResponseObserver(new VolleyImageView.ResponseObserver() {
+                @Override
+                public void onError() {
+                    Constants.DEBUG_LOG(TAG,"OnError called in imageview listener");
+                    //TODO: Say error loading image in the imageView, use error image
+                }
+                @Override
+                public void onSuccess() {
+                    Constants.DEBUG_LOG(TAG,"OnSuccess called in imageview listener");
+                    holder.pbar.setVisibility(ProgressBar.INVISIBLE);
+                }
+            });
         }else{
             loadPosition(position);
         }
@@ -168,6 +185,7 @@ public class ItemListAdapter extends BaseAdapter{
     private class ViewHolder{
         public TextView name;
         public TextView tag;
-        public NetworkImageView icon;
+        public VolleyImageView icon;
+        public ProgressBar pbar;
     }
 }

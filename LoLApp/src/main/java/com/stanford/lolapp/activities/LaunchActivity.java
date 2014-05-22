@@ -84,16 +84,20 @@ public class LaunchActivity extends Activity implements INoticeDialogListener {
     }
 
     private void checkUser(){
+        Constants.DEBUG_LOG(TAG,"Checking User: ");
         //Check if user is null, if null send to login, if not null send to main
         if(mService.isUserAvailible()) {
+            Constants.DEBUG_LOG(TAG,"User is availible.");
             Intent mIntent = new Intent(this,MainActivity.class);
             mIntent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
             startActivity(mIntent);
+        }else {
+            //If no user object then send to log in
+            Constants.DEBUG_LOG(TAG, "No User is availible.");
+            Intent mIntent = new Intent(this, LoginActivity.class);
+            mIntent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+            startActivity(mIntent);
         }
-        //If no user object then send to log in
-        Intent mIntent = new Intent(this,LoginActivity.class);
-        mIntent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-        startActivity(mIntent);
     }
 
     @Override

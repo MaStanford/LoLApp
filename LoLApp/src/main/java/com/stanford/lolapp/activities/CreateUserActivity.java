@@ -4,13 +4,17 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
 
 import android.os.Bundle;
+import android.os.IBinder;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
 import android.util.Log;
@@ -42,8 +46,11 @@ import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
 import com.stanford.lolapp.models.User;
 import com.stanford.lolapp.network.JSONBody;
+import com.stanford.lolapp.network.LoLAppWebserviceRequest;
+import com.stanford.lolapp.network.Requests;
 import com.stanford.lolapp.network.VolleyTask;
 import com.stanford.lolapp.network.WebService;
+import com.stanford.lolapp.service.LoLAppService;
 import com.stanford.lolapp.util.Constants;
 
 import org.json.JSONObject;
@@ -66,6 +73,24 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
     private DataHash mDataHase =  LoLApp.getApp().getDataHash();
 
     private boolean mIsLoading = false;
+
+    private LoLAppService mService;
+    private boolean mBound = false;
+
+    /***************************************************
+     * Services
+     *************************************************/
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            LoLAppService.LocalBinder binder = (LoLAppService.LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
+        }
+        public void onServiceDisconnected(ComponentName className) {
+            mBound = false;
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +137,29 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
     }
+
+    @Override
+    protected void onStart(){
+        super.onStart();
+        /****************************************
+         * SERVICES
+         ***************************************/
+        // Bind to LocalService
+        Intent intent = new Intent(this, LoLAppService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        Constants.DEBUG_LOG(TAG, "Service: " + mService);
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+        //Unbind the Services
+        if (mBound) {
+            unbindService(mConnection);
+            mBound = false;
+        }
+    }
+
 
     private void populateAutoComplete() {
         getLoaderManager().initLoader(0, null, this);
@@ -308,13 +356,13 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
 
         //Example Create request
         RequestQueue requestQueue = VolleyTask.getRequestQueue(this);
-        WebService.LoLAppWebserviceRequest request = new WebService.CreateUser();
+        LoLAppWebserviceRequest request = new Requests.CreateUser();
         request.setRequestMethod(Request.Method.POST);
         JSONBody body = new JSONBody();
 
-        body.addTuple(WebService.CreateUser.PARAM_REQUIRED_USERNAME, user);
-        body.addTuple(WebService.CreateUser.PARAM_REQUIRED_PASSWORD, password);
-        body.addTuple(WebService.CreateUser.PARAM_OPTIONAL_EMAIL, email);
+        body.addTuple(Requests.CreateUser.PARAM_REQUIRED_USERNAME, user);
+        body.addTuple(Requests.CreateUser.PARAM_REQUIRED_PASSWORD, password);
+        body.addTuple(Requests.CreateUser.PARAM_OPTIONAL_EMAIL, email);
 
         WebService.makeRequest(requestQueue, request, null, body,
                 new Response.Listener<JSONObject>() {
@@ -328,9 +376,9 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
                         //Create a user
                         Gson gson = new Gson();
                         User mUser = gson.fromJson(response.toString(),User.class);
-                        mUser.setPassword(password);
                         mUser.setUsername(user);
                         mDataHase.setUser(mUser);
+                        mService.saveUserFile(mUser);
 
                         //Start new Activity
                         Intent mIntent = new Intent(mContext,MainActivity.class);

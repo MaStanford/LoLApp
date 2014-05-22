@@ -25,6 +25,8 @@ import java.io.Writer;
  */
 public class JSONSerializer {
 
+    private static final String TAG = "JSONSerializer";
+
     /**
      *  Saves the JSONObject to file
      */
@@ -46,11 +48,14 @@ public class JSONSerializer {
      *  Saves the JSONObject to file from String
      */
     public static void saveJSON(String object,File filename) throws JSONException, IOException {
+        Constants.DEBUG_LOG(TAG,"Saving file: " + filename);
+        Constants.DEBUG_LOG(TAG,"File Contents: " + object.toString());
         //Write to disk
         Writer mWriter = null;
         try{
             FileOutputStream mFileOutputStream = new FileOutputStream(filename);
             mWriter = new OutputStreamWriter(mFileOutputStream);
+            Constants.DEBUG_LOG(TAG,"Writer Contents: " + mWriter.toString());
             mWriter.write(object);
         } finally {
             if(mWriter != null){
@@ -62,7 +67,7 @@ public class JSONSerializer {
 
     public static JSONObject loadJSONFile(File filename) throws JSONException, IOException {
 
-        Toast.makeText(LoLApp.getApp(), "Loading " + filename.getName() + "...", Toast.LENGTH_LONG).show();
+        Constants.DEBUG_LOG(TAG,"Loading file: " + filename);
 
         JSONObject object = null;
 
@@ -77,6 +82,7 @@ public class JSONSerializer {
             while((mLine = mBufferedReader.readLine()) != null ){
                 mJSONString.append(mLine);
             }
+            Constants.DEBUG_LOG(TAG,"File Contents: " + mJSONString.toString());
             //Grab JSON tokens from string
             object = (JSONObject) new JSONTokener(mJSONString.toString()).nextValue();
             Log.d("JSONObject","Loaded JSON: " + object.toString());

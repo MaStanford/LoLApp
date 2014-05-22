@@ -97,7 +97,7 @@ public class MainActivity extends Activity
          ***************************************/
         // Bind to LocalService
         Intent intent = new Intent(this, LoLAppService.class);
-        bindService(intent, mConnection, Context.BIND_ABOVE_CLIENT);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         Constants.DEBUG_LOG(TAG, "Service: " + mService);
     }
 
@@ -211,10 +211,18 @@ public class MainActivity extends Activity
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
+        switch(id){
+            case R.id.action_settings:
+                return true;
+            case R.id.action_logout:
+                mService.logOutUser();
+                Intent mIntent = new Intent(this,LaunchActivity.class);
+                mIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                startActivity(mIntent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override

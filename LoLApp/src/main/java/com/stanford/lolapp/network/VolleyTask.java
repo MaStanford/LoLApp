@@ -24,6 +24,8 @@ public class VolleyTask {
     private static RequestQueue mRequestQueue = null;
     private static ImageLoader mImageLoader = null;
 
+    private static final int DEFAULT_NETWORK_THREAD_POOL_SIZE = 12;
+
     public static RequestQueue getRequestQueue(Context context) {
         if (mRequestQueue == null) {
             DefaultHttpClient http = new DefaultHttpClient();
@@ -32,7 +34,8 @@ public class VolleyTask {
             http = new DefaultHttpClient(new ThreadSafeClientConnManager(params, mgr.getSchemeRegistry()), params);
             mRequestQueue = new RequestQueue(
                     new DiskBasedCache(context.getCacheDir()),
-                    new BasicNetwork(new HttpClientStack(http)));
+                    new BasicNetwork(new HttpClientStack(http)),
+                    DEFAULT_NETWORK_THREAD_POOL_SIZE);
         }
         return mRequestQueue;
     }

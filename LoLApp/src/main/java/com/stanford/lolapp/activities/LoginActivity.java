@@ -4,13 +4,17 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
 
 import android.os.Bundle;
+import android.os.IBinder;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
 import android.util.Log;
@@ -36,9 +40,12 @@ import com.stanford.lolapp.DataHash;
 import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
 import com.stanford.lolapp.models.User;
+import com.stanford.lolapp.network.LoLAppWebserviceRequest;
+import com.stanford.lolapp.network.Requests;
 import com.stanford.lolapp.network.UserTask;
 import com.stanford.lolapp.network.VolleyTask;
 import com.stanford.lolapp.network.WebService;
+import com.stanford.lolapp.service.LoLAppService;
 
 import org.json.JSONObject;
 
@@ -58,9 +65,27 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
 
     private boolean mIsLoading = false;
 
+    private LoLAppService mService;
+    private boolean mBound = false;
+
     //Globals
     private LoLApp mContext = LoLApp.getApp();
     private DataHash mDataHase =  LoLApp.getApp().getDataHash();
+
+    /***************************************************
+     * Services
+     *************************************************/
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            LoLAppService.LocalBinder binder = (LoLAppService.LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
+        }
+        public void onServiceDisconnected(ComponentName className) {
+            mBound = false;
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +131,27 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+    }
+
+    @Override
+    protected void onStart(){
+        super.onStart();
+        Intent intent = new Intent(this, LoLAppService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+        if (mBound) {
+            unbindService(mConnection);
+            mBound = false;
+        }
     }
 
     private void populateAutoComplete() {
@@ -263,11 +309,11 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
 
         //Example Login request
         RequestQueue requestQueue = VolleyTask.getRequestQueue(this);
-        WebService.LoLAppWebserviceRequest request = new WebService.Login();
+        LoLAppWebserviceRequest request = new Requests.Login();
         Bundle params = new Bundle();
 
-        params.putString(WebService.Login.PARAM_REQUIRED_USERNAME,user);
-        params.putString(WebService.Login.PARAM_REQUIRED_PASSWORD,pass);
+        params.putString(Requests.Login.PARAM_REQUIRED_USERNAME,user);
+        params.putString(Requests.Login.PARAM_REQUIRED_PASSWORD,pass);
 
         UserTask.getInstance().loginWithUserPassword(params,
                 new Response.Listener<JSONObject>() {
@@ -281,6 +327,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
                         Gson gson = new Gson();
                         User mUSer = gson.fromJson(response.toString(),User.class);
                         mDataHase.setUser(mUSer);
+                        mService.saveUserFile(mUSer);
 
                         //Start new Activity
                         Intent mIntent = new Intent(mContext,MainActivity.class);

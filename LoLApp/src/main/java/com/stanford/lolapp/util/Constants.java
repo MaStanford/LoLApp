@@ -1,13 +1,18 @@
 package com.stanford.lolapp.util;
 
+import android.content.pm.ApplicationInfo;
 import android.util.Log;
+
+import com.stanford.lolapp.LoLApp;
 
 /**
  * Created by Mark Stanford on 4/26/14.
  */
 public class Constants {
 
-    public static final boolean DEBUG = true;
+    static final boolean isDebuggable = (0 !=
+                (LoLApp.getApp().getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE));
+    public static final boolean DEBUG = isDebuggable;
 
     //Default File location
     public static final String EXTERNAL_FILE_DIR        = "LoLApp";
@@ -29,6 +34,7 @@ public class Constants {
     // Errors
     public static final String CREATE_OUT_DIR_ERROR     = "CREATE_OUT_DIR_ERROR";
     public static final String EXTERNAL_DIR_NOT_AVAIL   = "EXTERNAL_DIR_NOT_AVAIL";
+
 
 
     /**

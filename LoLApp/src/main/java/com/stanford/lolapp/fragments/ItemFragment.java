@@ -27,6 +27,8 @@ import com.stanford.lolapp.adapters.ItemListAdapter;
 import com.stanford.lolapp.fragments.dummy.DummyContent;
 import com.stanford.lolapp.interfaces.OnFragmentInteractionListener;
 import com.stanford.lolapp.models.ItemListDTO;
+import com.stanford.lolapp.network.LoLAppWebserviceRequest;
+import com.stanford.lolapp.network.Requests;
 import com.stanford.lolapp.network.VolleyTask;
 import com.stanford.lolapp.network.WebService;
 
@@ -147,11 +149,11 @@ public class ItemFragment extends Fragment implements AbsListView.OnItemClickLis
         mProgressBar.setVisibility(ProgressBar.VISIBLE);
 
         RequestQueue requestQueue = VolleyTask.getRequestQueue(mAppContext);
-        WebService.LoLAppWebserviceRequest request = new WebService.GetAllItems();
+        LoLAppWebserviceRequest request = new Requests.GetAllItems();
         Bundle params = new Bundle();
         params.putString(WebService.PARAM_REQUIRED_LOCATION, WebService.location.na.getLocation());
         params.putString(WebService.PARAM_REQUIRED_LOCALE, WebService.locale.en_US.getLocale());
-        params.putString(WebService.GetAllItems.PARAM_DATA, WebService.ItemData.all.getParam());
+        params.putString(Requests.GetAllItems.PARAM_DATA, WebService.ItemData.all.getParam());
         WebService.makeRequest(requestQueue, request, params,null,
                 new Response.Listener<JSONObject>() {
                     @Override

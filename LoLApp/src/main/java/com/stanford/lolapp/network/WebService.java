@@ -6,8 +6,6 @@ import android.util.Log;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.NetworkResponse;
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -15,9 +13,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class WebService {
@@ -93,10 +89,10 @@ public class WebService {
     public static final String PARAM_REQUIRED_API_KEY           = "REST-API-Key";
 
     // Optional parameters available for pretty much every service call
-    private static final String PARAM_OPTIONAL_FORMAT           = "format";
-    private static final String FORMAT_JSON                     = "application/json";
-    private static final String PARAM_OPTIONAL_CALLBACK         = "callback";
-    private static final String PARAM_OPTIONAL_RETURNHTML       = "returnHTML";
+    public static final String PARAM_OPTIONAL_FORMAT            = "format";
+    public static final String FORMAT_JSON                      = "application/json";
+    public static final String PARAM_OPTIONAL_CALLBACK          = "callback";
+    public static final String PARAM_OPTIONAL_RETURNHTML        = "returnHTML";
 
     private static final Integer SOCKET_TIMEOUT_MS              = 15000;
 
@@ -191,260 +187,6 @@ public class WebService {
         }
     }
 
-
-    /**
-     * Root class for any webservice requests
-     */
-    public static class WebserviceRequest {
-        protected boolean mRequestTypeSecure = true;
-        protected int mServiceName;
-        protected String mServiceUri;
-        protected int mRequestMethod;
-        protected String mHostName;
-
-        protected List<String> mRequiredParams = new ArrayList<String>();
-        protected List<String> mOptionalParams = new ArrayList<String>();
-        protected List<String> mRequiredHeaders = new ArrayList<String>();
-        protected List<String> mRequiredBody = new ArrayList<String>();
-        protected List<String> mOptionalBody = new ArrayList<String>();
-
-        public WebserviceRequest(int serviceName, String serviceUri) {
-            mServiceName = serviceName;
-            mServiceUri = serviceUri;
-        }
-
-        public WebserviceRequest setRequestMethod(int requestMethod){
-            this.mRequestMethod = requestMethod;
-            return this;
-        }
-
-        public int getRequestMethod() {
-            return mRequestMethod;
-        }
-
-        public int getServiceName() {
-            return mServiceName;
-        }
-
-        public String getServiceUri() {
-            return mServiceUri;
-        }
-
-        public String getHostName() {
-            return mHostName;
-        }
-
-        public boolean getRequestTypeSecure() {
-            return mRequestTypeSecure;
-        }
-
-        public void setRequestTypeSecure(boolean requestTypeSecure) {
-            mRequestTypeSecure = requestTypeSecure;
-        }
-
-        public List<String> getRequiredParams() {
-            return mRequiredParams;
-        }
-
-        public List<String> getOptionalParams() {
-            return mOptionalParams;
-        }
-
-        public List<String> getRequiredHeaders() {
-            return mRequiredHeaders;
-        }
-
-        public Boolean isAuthTokenRequired() {
-            return mRequiredParams.contains(PARAM_REQUIRED_AUTH_TOKEN);
-        }
-
-        public Boolean isAuthHeaderRequired() {
-            return mRequiredHeaders.contains(HEADER_REQUIRED_API_KEY)
-                    || mRequiredHeaders.contains(HEADER_REQUIRED_APP_KEY);
-        }
-
-        /**
-         * Checks to see if all params are included in the bundle
-         * @param params
-         * @return
-         */
-        public Boolean areParamsValid(Bundle params) {
-            // make certain all required params are present
-            for (String param : mRequiredParams) {
-                if (!params.containsKey(param)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        /**
-         * Checks to see if all headers are included in the bundle
-         * @param headers
-         * @return
-         */
-        public Boolean areHeadersValid(Map<String,String> headers) {
-            // make certain all required params are present
-            for (String param : mRequiredHeaders) {
-                if (!headers.containsKey(param)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public boolean isBodyValid(JSONBody body){
-            for (String param : mRequiredBody) {
-                if (!body.getMap().containsKey(param)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public VolleyError getClientErrorObject(NetworkResponse networkResponse) {
-            return new VolleyError(networkResponse);
-        }
-    }
-
-    /**
-     * Base request with Get method
-     */
-    public static class LoLAppWebserviceRequest extends WebserviceRequest {
-
-        public LoLAppWebserviceRequest(int serviceName, String serviceUri) {
-            super(serviceName, serviceUri);
-            mRequestMethod = Request.Method.GET;
-            mHostName = PRODUCTION_RIOT_HOSTNAME;
-        }
-
-        public List<String> createDefaultOptionalParams() {
-            List<String> optionalParams = new ArrayList<String>();
-            mRequiredHeaders.add(HEADER_REQUIRED_FORMAT);
-            optionalParams.add(PARAM_OPTIONAL_FORMAT);
-            optionalParams.add(PARAM_OPTIONAL_CALLBACK);
-            optionalParams.add(PARAM_OPTIONAL_RETURNHTML);
-
-            return optionalParams;
-        }
-
-        public ClientError getClientErrorObject(NetworkResponse networkResponse) {
-            return new ClientError(networkResponse);
-        }
-    }
-
-    /**
-     * If I ever decide to have users and need to log in
-     */
-    public static class Login extends LoLAppWebserviceRequest {
-        public static final String PARAM_REQUIRED_USERNAME = "username";
-        public static final String PARAM_REQUIRED_PASSWORD = "password";
-
-        public Login() {
-            super(SERVICE_LOGIN, PATH_LOGIN);
-            mRequiredParams.add(PARAM_REQUIRED_USERNAME);
-            mRequiredParams.add(PARAM_REQUIRED_PASSWORD);
-            mRequiredHeaders.add(HEADER_REQUIRED_API_KEY);
-            mRequiredHeaders.add(HEADER_REQUIRED_APP_KEY);
-        }
-    }
-
-    /**
-     * If I ever decide to make users
-     */
-    public static class CreateUser extends LoLAppWebserviceRequest {
-
-        public static final String PARAM_REQUIRED_USERNAME  = "username";
-        public static final String PARAM_REQUIRED_PASSWORD  = "password";
-
-        public static final String PARAM_OPTIONAL_EMAIL     = "email";
-
-        public CreateUser() {
-            super(SERVICE_SIGN_UP, PATH_CREATE_USER);
-            mRequiredBody.add(PARAM_REQUIRED_USERNAME);
-            mRequiredBody.add(PARAM_REQUIRED_PASSWORD);
-            mOptionalBody.add(PARAM_OPTIONAL_EMAIL);
-            mRequiredHeaders.add(HEADER_REQUIRED_API_KEY);
-            mRequiredHeaders.add(HEADER_REQUIRED_APP_KEY);
-        }
-    }
-
-    /**
-     * Get a list of Champion IDs
-     */
-    public static class GetAllChampionIds extends LoLAppWebserviceRequest {
-
-        public GetAllChampionIds() {
-            super(SERVICE_GET_ALL_CHAMPION_IDS, PATH_GET_ALL_CHAMP_IDS);
-        }
-    }
-
-    /**
-     * Get a single champion ID
-     */
-    public static class GetChampionId extends LoLAppWebserviceRequest {
-
-
-        public GetChampionId(String championID) {
-            super(SERVICE_GET_CHAMPION_ID, PATH_GET_CHAMP_ID + championID);
-        }
-    }
-
-    /**
-     * Get a champion
-     */
-    public static class GetChampionData extends LoLAppWebserviceRequest {
-
-        public static final String PARAM_DATA = "champData"; //Use Enum for this
-
-
-        public GetChampionData(int championID) {
-            super(SERVICE_GET_CHAMPION_DATA, PATH_GET_CHAMP + championID);
-            mRequiredParams.add(PARAM_REQUIRED_LOCATION);
-            mRequiredParams.add(PARAM_REQUIRED_LOCALE);
-            mOptionalParams.add(PARAM_DATA);
-        }
-    }
-
-    /**
-     * Get a list of all the champions
-     */
-    public static class GetAllChampionData extends LoLAppWebserviceRequest {
-
-        public static final String PARAM_DATA = "champData"; //Use Enum for this
-
-        public GetAllChampionData() {
-            super(SERVICE_GET_ALL_CHAMPION_DATA, PATH_GET_ALL_CHAMPS);
-            mRequiredParams.add(PARAM_REQUIRED_LOCATION);
-            mRequiredParams.add(PARAM_REQUIRED_LOCALE);
-            mOptionalParams.add(PARAM_DATA);
-        }
-    }
-
-    public static class GetItem extends LoLAppWebserviceRequest{
-
-        public static final String PARAM_DATA = "itemData"; //Use Enum for this
-
-        public GetItem(int itemID){
-            super(SERVICE_GET_ALL_ITEM_DATA, PATH_GET_ITEM + itemID);
-            mRequiredParams.add(PARAM_REQUIRED_LOCATION);
-            mRequiredParams.add(PARAM_REQUIRED_LOCALE);
-            mOptionalParams.add(PARAM_DATA);
-        }
-    }
-
-    public static class GetAllItems extends LoLAppWebserviceRequest{
-
-        public static final String PARAM_DATA = "itemListData"; //Use Enum for this
-
-        public GetAllItems(){
-            super(SERVICE_GET_ITEM_DATA, PATH_GET_ALL_ITEMS);
-            mRequiredParams.add(PARAM_REQUIRED_LOCATION);
-            mRequiredParams.add(PARAM_REQUIRED_LOCALE);
-            mOptionalParams.add(PARAM_DATA);
-        }
-    }
-
     public static void makeRequest(
             final RequestQueue queue,
             final WebserviceRequest serviceRequest,
@@ -453,49 +195,164 @@ public class WebService {
             final Response.Listener<JSONObject> successListener,
             final Response.ErrorListener errorListener) {
 
-        String API_VERSION = "";
-
         //Get the proper headers
-        final Map<String,String> headers = new HashMap<String, String>();
+        final Map<String,String> headers = generateHeaders(serviceRequest);
+
+        //Make sure all required headers are there
+        validateHeaders(serviceRequest,errorListener,headers);
+
+        //Params, api key needs to be first I think
+        final Bundle params = generateParams(requestParams);
+
+        // validate params
+        validateParams(serviceRequest,errorListener,params);
+
+        //Generates the URI from the location, request, params etc
+        Uri uri = generateURI(serviceRequest,params);
+
+        Log.d(TAG, String.format("Making request: %s", uri.toString()));
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                serviceRequest.getRequestMethod(),
+                uri.toString(),
+                null,
+                successListener, new Response.ErrorListener() {
+            @Override public void onErrorResponse(VolleyError error) {
+                if (error.networkResponse == null) {
+                    errorListener.onErrorResponse(error);
+                    return;
+                }
+
+                Integer statusCode = error.networkResponse.statusCode;
+                if (statusCode >= 400 && statusCode < 500) {
+                    errorListener.onErrorResponse(serviceRequest.getClientErrorObject(error.networkResponse));
+                } else {
+                    // we do not have special types for any other status codes yet
+                    errorListener.onErrorResponse(error);
+                }
+            }
+        }){
+            /**
+             * Add headers here
+             * @return
+             * @throws AuthFailureError
+             */
+            @Override public Map<String,String> getHeaders() throws AuthFailureError{
+                return headers != null ? headers : super.getHeaders();
+            }
+
+            /**
+             * Add body to request here
+             * @return
+             */
+            @Override public byte[] getBody() {
+                if(body != null){
+                    if(!serviceRequest.isBodyValid(body)) {
+                        errorListener.onErrorResponse(new VolleyError("Unable to send request.  Missing required body param."));
+                        return super.getBody();
+                    }
+
+                    return JSONBody.toByteArray(body.toString());
+                }
+                return super.getBody();
+            }
+        };
+
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                SOCKET_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        queue.add(request);
+
+        queue.start();
+    }
+
+    /**
+     * Validates the headers, if there is an issue it will call the error response
+     * @param serviceRequest
+     * @param errorListener
+     * @param headers
+     */
+    private static void validateHeaders(WebserviceRequest serviceRequest,Response.ErrorListener errorListener, Map<String,String> headers){
+        // validate headers
+        if (serviceRequest.isAuthHeaderRequired() && !serviceRequest.areHeadersValid(headers)) {
+            Log.e(TAG, "makeRequest missing required headers");
+            errorListener.onErrorResponse(new VolleyError("Unable to send request.  Missing required header."));
+        }
+    }
+
+    /**
+     * Puts the required headers for the app into the map
+     * @param serviceRequest
+     * @return
+     */
+    private static Map<String,String> generateHeaders(WebserviceRequest serviceRequest){
+        Map<String, String> headers = new HashMap<String, String>();
         if(serviceRequest.isAuthHeaderRequired()) {
             Log.d(TAG,"Auth Header Required");
             headers.put(HEADER_REQUIRED_API_KEY, REST_API_KEY);
             headers.put(HEADER_REQUIRED_APP_KEY, APPLICATION_ID);
         }
+        return headers;
+    }
 
-
-        // validate headers
-        if (serviceRequest.isAuthHeaderRequired() && !serviceRequest.areHeadersValid(headers)) {
-            Log.e(TAG, "makeRequest missing required headers");
-            errorListener.onErrorResponse(new VolleyError("Unable to send request.  Missing required header."));
-            return;
-        }
-
-
-        //Params, api key needs to be first I think
-        final Bundle params = new Bundle();
+    /**
+     * Puts params into the bundle
+     * @param requestParams
+     * @return
+     */
+    private static Bundle generateParams(Bundle requestParams){
+        Bundle params = new Bundle();
         if (requestParams != null) {
             params.putAll(requestParams);
         }
+        return params;
+    }
 
-        // validate params
+    /**
+     * validates the params. Squaks to the listener if its done goofed.
+     * @param serviceRequest
+     * @param errorListener
+     * @param params
+     */
+    private static void validateParams(WebserviceRequest serviceRequest, Response.ErrorListener errorListener, Bundle params){
         if (!serviceRequest.areParamsValid(params)) {
             Log.e(TAG, "makeRequest missing required param");
             errorListener.onErrorResponse(new VolleyError("Unable to send request.  Missing required parameter."));
-            return;
         }
+    }
 
-        //Check the location in the bundle.  If no location, then NA is default.
-        String mLocation = "/na";
+    /**
+     * returns the location
+     * @param requestParams
+     * @return
+     */
+    private static String generateLocation(Bundle requestParams){
+        String location = "/na"; //TODO: grab this default from a sharepref
         if (requestParams != null && requestParams.containsKey(PARAM_REQUIRED_LOCATION)) {
-            mLocation = requestParams.getString(PARAM_REQUIRED_LOCATION);
-            params.remove(PARAM_REQUIRED_LOCATION); //Don't want this to be involved with args
+            location = requestParams.getString(PARAM_REQUIRED_LOCATION);
+            requestParams.remove(PARAM_REQUIRED_LOCATION); //Don't want this to be involved with args
         }
+        return location;
+    }
+
+    /**
+     * Returns the URI based on params and request
+     * @param serviceRequest
+     * @return
+     */
+    private static Uri generateURI(WebserviceRequest serviceRequest,Bundle params){
+
+        String API_VERSION = "";
+        Uri uri = null;
 
         String hostName = serviceRequest.getHostName();
         String uriString = serviceRequest.getServiceUri();
 
-        Uri uri = null;
+        //Check the location in the bundle.  If no location, then NA is default.
+        String mLocation = generateLocation(params);
+
         //Set the API version and URI based on request
         switch(serviceRequest.getServiceName()){
             case SERVICE_GET_CHAMPION_DATA:
@@ -583,7 +440,6 @@ public class WebService {
                         PRODUCTION_PARSE_API_VER,
                         uriString));
                 uri = appendQueryBundle(uri, params);
-                Log.d(TAG,"Headers: " + headers.toString());
                 break;
             case SERVICE_SIGN_UP:
                 uri = Uri.parse(String.format("%s://%s%s%s",
@@ -592,68 +448,11 @@ public class WebService {
                         PRODUCTION_PARSE_API_VER,
                         uriString));
                 uri = appendQueryBundle(uri, params);
-                Log.d(TAG,"Headers: " + headers.toString());
                 break;
             default:
                 break;
         }
-
-        Log.d(TAG, String.format("Making request: %s", uri.toString()));
-
-        JsonObjectRequest request = new JsonObjectRequest(
-                serviceRequest.getRequestMethod(),
-                uri.toString(),
-                null,
-                successListener, new Response.ErrorListener() {
-            @Override public void onErrorResponse(VolleyError error) {
-                if (error.networkResponse == null) {
-                    errorListener.onErrorResponse(error);
-                    return;
-                }
-
-                Integer statusCode = error.networkResponse.statusCode;
-                if (statusCode >= 400 && statusCode < 500) {
-                    errorListener.onErrorResponse(serviceRequest.getClientErrorObject(error.networkResponse));
-                } else {
-                    // we do not have special types for any other status codes yet
-                    errorListener.onErrorResponse(error);
-                }
-            }
-        }){
-            /**
-             * Add headers here
-             * @return
-             * @throws AuthFailureError
-             */
-            @Override public Map<String,String> getHeaders() throws AuthFailureError{
-                return headers != null ? headers : super.getHeaders();
-            }
-
-            /**
-             * Add body to request here
-             * @return
-             */
-            @Override public byte[] getBody() {
-                if(body != null){
-                    if(!serviceRequest.isBodyValid(body)) {
-                        errorListener.onErrorResponse(new VolleyError("Unable to send request.  Missing required body param."));
-                        return super.getBody();
-                    }
-
-                    return JSONBody.toByteArray(body.toString());
-                }
-                return super.getBody();
-            }
-        };
-
-        request.setRetryPolicy(new DefaultRetryPolicy(
-                SOCKET_TIMEOUT_MS,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-        queue.add(request);
-
-        queue.start();
+        return uri;
     }
 
     private static Uri appendQueryBundle(Uri uri, Bundle params) {

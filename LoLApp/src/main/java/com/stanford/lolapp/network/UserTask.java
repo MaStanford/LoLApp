@@ -43,7 +43,7 @@ public class UserTask {
      * @param errorListener
      */
     public void loginWithUserPassword(Bundle params, Response.Listener<JSONObject> responseListener, Response.ErrorListener errorListener){
-        WebService.LoLAppWebserviceRequest request = new WebService.Login();
+        LoLAppWebserviceRequest request = new Requests.Login();
         WebService.makeRequest(requestQueue, request, params, null, responseListener,errorListener);
     }
 
@@ -56,7 +56,7 @@ public class UserTask {
      * @param errorListener
      */
     public void createUser(Bundle params, Response.Listener<JSONObject> responseListener, Response.ErrorListener errorListener){
-        WebService.LoLAppWebserviceRequest request = new WebService.CreateUser();
+        LoLAppWebserviceRequest request = new Requests.CreateUser();
         WebService.makeRequest(requestQueue, request, params, null, responseListener,errorListener);
     }
 

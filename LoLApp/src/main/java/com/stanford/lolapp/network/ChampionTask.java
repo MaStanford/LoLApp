@@ -53,7 +53,7 @@ public class ChampionTask {
                                   JSONBody body,
                                   Response.Listener<JSONObject> responseListener,
                                   Response.ErrorListener errorListener) {
-        WebService.LoLAppWebserviceRequest request = new WebService.GetChampionData(id);
+        LoLAppWebserviceRequest request = new Requests.GetChampionData(id);
         WebService.makeRequest(requestQueue, request, params, body, responseListener, errorListener);
     }
 
@@ -73,7 +73,7 @@ public class ChampionTask {
                                              Response.Listener<JSONObject> responseListener,
                                              Response.ErrorListener errorListener) {
         for (int i = min; i < max; i++) {
-            WebService.LoLAppWebserviceRequest request = new WebService.GetChampionData(mDataHash.getChampionIDbyPos(i));
+            LoLAppWebserviceRequest request = new Requests.GetChampionData(mDataHash.getChampionIDbyPos(i));
             WebService.makeRequest(requestQueue, request, params, body, responseListener, errorListener);
         }
     }
@@ -89,7 +89,7 @@ public class ChampionTask {
                                  final JSONBody body,
                                  final Response.Listener<JSONObject> successListener,
                                  final Response.ErrorListener errorListener) {
-        WebService.LoLAppWebserviceRequest request = new WebService.GetAllChampionData();
+        LoLAppWebserviceRequest request = new Requests.GetAllChampionData();
         WebService.makeRequest(requestQueue, request, requestParams, body, successListener, errorListener);
     }
 
@@ -104,7 +104,7 @@ public class ChampionTask {
                                     final JSONBody body,
                                     final Response.Listener<JSONObject> successListener,
                                     final Response.ErrorListener errorListener) {
-        WebService.LoLAppWebserviceRequest request = new WebService.GetAllChampionIds();
+        LoLAppWebserviceRequest request = new Requests.GetAllChampionIds();
         WebService.makeRequest(requestQueue, request, requestParams, body, successListener, errorListener);
     }
 }

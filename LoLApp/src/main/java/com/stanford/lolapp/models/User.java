@@ -10,26 +10,23 @@ import org.json.JSONObject;
 public class User {
 
     private String username;
-    private String password;
     private String createdAt;
     private String updatedAt;
     private String objectId;
     private String sessionToken;
 
     //KEYS FOR JSON
-    private String Jusername        = "Jusername";
-    private String Jpassword        = "Jpassword";
-    private String JcreatedAt       = "JcreatedAt";
-    private String JupdatedAt       = "JupdatedAt";
-    private String JobjectId        = "JobjectId";
-    private String JsessionToken    = "JsessionToken";
+    private String Jusername        = "username";
+    private String JcreatedAt       = "createdAt";
+    private String JupdatedAt       = "updatedAt";
+    private String JobjectId        = "objectId";
+    private String JsessionToken    = "sessionToken";
 
     public User() {
     }
 
     public User(JSONObject jsonObject) throws JSONException{
        this.username = jsonObject.getString(Jusername);
-       this.password= jsonObject.getString(Jpassword);
        this.createdAt= jsonObject.getString(JcreatedAt);
        this.updatedAt= jsonObject.getString(JupdatedAt);
        this.objectId= jsonObject.getString(JobjectId);
@@ -42,14 +39,6 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getCreatedAt() {
@@ -89,7 +78,6 @@ public class User {
         JSONObject mJSON = new JSONObject();
 
         mJSON.put(Jusername,username);
-        mJSON.put(Jpassword,password);
         mJSON.put(JcreatedAt,createdAt);
         mJSON.put(JupdatedAt,username);
         mJSON.put(JobjectId,objectId);
@@ -102,7 +90,6 @@ public class User {
     public String toString() {
         return "User{" +
                 "username='" + username + '\'' +
-                ", password='" + password + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 ", objectId='" + objectId + '\'' +

@@ -46,7 +46,15 @@
     <string name="hello_world">Hello world!</string>
 
     <!-- Note Strings -->
-    <string name="service_data_fetch">Fetching Data from Riot Servers</string>
-    <string name="service_data_fetch_label">Network call to Riot Servers...</string>
+    <string name="service_data_fetch">LoLApp Network Usage</string>
+    <string name="service_data_fetch_label">Network call to Riot Servers.</string>
+    <string name="service_data_fetch_champ">Fetching Champion data from riot servers.</string>
+    <string name="service_data_fetch_item">Fetching Item data from riot servers.</string>
+    <string name="service_data_fetch_id">Fetching Champion IDs from riot servers.</string>
+    <string name="service_data_fetch_games">Fetching Game data from riot servers.</string>
+    <string name="service_data_fetch_user">Fetching User data from server.</string>
+    <string name="service_data_fetch_summoner">Fetching Summoner data from riot servers.</string>
+    <string name="service_data_fetch_runes">Fetching Rune/Mastery data from server.</string>
+    <string name="title_activity_data">DataActivity</string>
 
 </resources>

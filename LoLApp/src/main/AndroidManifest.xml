@@ -3,6 +3,7 @@
     package="com.stanford.lolapp" >
 
     <application
+        android:debuggable="true"
         android:name="com.stanford.lolapp.LoLApp"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -44,6 +45,15 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="com.stanford.lolapp.activities.DataActivity"
+            android:label="@string/title_activity_data"
+            android:parentActivityName="com.stanford.lolapp.activities.MainActivity"
+            android:windowSoftInputMode="adjustResize|stateVisible">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="MainActivity" />
         </activity>
     </application>
 
