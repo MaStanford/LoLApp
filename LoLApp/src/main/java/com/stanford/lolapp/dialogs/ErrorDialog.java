@@ -20,9 +20,10 @@ public class ErrorDialog extends DialogFragment{
 
     private static final String TAG = "ErrorDialog";
 
-    public static final int DIALOG_LOGIN_ERROR      =   0;
-    public static final int DIALOG_CREATE_ERROR     =   1;
-    public static final int DIALOG_NETWORK_ERROR    =   2;
+    public static final int DIALOG_LOGIN_ERROR          =   0;
+    public static final int DIALOG_CREATE_ERROR         =   1;
+    public static final int DIALOG_NETWORK_ERROR        =   2;
+    public static final int DIALOG_DOWNLOAD_ERROR       =   3;
 
     private static Context mContext;
     private static DataHash mDataHash;
@@ -113,15 +114,25 @@ public class ErrorDialog extends DialogFragment{
                 mDialog.setPositiveButton(getString(R.string.network_error_positive),
                     new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
-                        mListener.onDialogPositiveClick(dialog);
+                        mListener.onDialogPositiveClick(dialog,mDialogType);
                     }
                 });
                 mDialog.setNegativeButton(getString(R.string.network_error_negative)
                         ,new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
-                        mListener.onDialogNegativeClick(dialog);
+                        mListener.onDialogNegativeClick(dialog,mDialogType);
                     }
                 });
+                break;
+            case DIALOG_DOWNLOAD_ERROR:
+                mDialog.setTitle(getString(R.string.network_download_title));
+                mDialog.setMessage(getString(R.string.network_download_body));
+                mDialog.setPositiveButton(getString(R.string.network_download_positive),
+                        new DialogInterface.OnClickListener() {
+                            @Override public void onClick(DialogInterface dialog, int which) {
+                                mListener.onDialogPositiveClick(dialog,mDialogType);
+                            }
+                        });
                 break;
         }
         return mDialog.create();

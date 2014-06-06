@@ -101,13 +101,13 @@ public class LaunchActivity extends Activity implements INoticeDialogListener {
     }
 
     @Override
-    public void onDialogPositiveClick(DialogInterface dialog) {
+    public void onDialogPositiveClick(DialogInterface dialog,int type) {
         Constants.DEBUG_LOG(TAG,"Checking connection after user input");
         checkConnection();
     }
 
     @Override
-    public void onDialogNegativeClick(DialogInterface dialog) {
+    public void onDialogNegativeClick(DialogInterface dialog,int type) {
         Constants.DEBUG_LOG(TAG,"User exits");
         finish();
     }

@@ -1,7 +1,6 @@
 package com.stanford.lolapp.adapters;
 
 import android.content.Context;
-import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,7 +8,6 @@ import android.widget.BaseAdapter;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.android.volley.toolbox.NetworkImageView;
 import com.stanford.lolapp.DataHash;
 import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
@@ -17,8 +15,6 @@ import com.stanford.lolapp.models.ItemDTO;
 import com.stanford.lolapp.network.VolleyTask;
 import com.stanford.lolapp.util.Constants;
 import com.stanford.lolapp.views.VolleyImageView;
-
-import java.util.ArrayList;
 
 /**
  * Created by Mark Stanford on 5/1/14.

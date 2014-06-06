@@ -37,6 +37,9 @@
     <string name="network_error_body">This app requires a network connection \nPlease connect now.</string>
     <string name="network_error_positive">Connected</string>
     <string name="network_error_negative">Exit</string>
+    <string name="network_download_title">Network Call Failed</string>
+    <string name="network_download_body">The attempt to download from Rito has failed.  Try again from the Download Manager screen.</string>
+    <string name="network_download_positive">Ok!</string>
 
     <!-- Action String -->
     <string name="action_timers">Timers</string>

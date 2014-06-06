@@ -58,6 +58,8 @@ import java.util.Date;
  */
 public class LoLAppService extends Service {
 
+    private LoLAppService mService;
+
     //Actions for network calls, put bundle in intent also
     public static final String ACTION_FETCH_CHAMPIONS               = "com.stanford.lolapp.actionFetchChampions";
     public static final String ACTION_FETCH_CHAMPIONIDS             = "com.stanford.lolapp.actionFetchIDs";
@@ -142,12 +144,15 @@ public class LoLAppService extends Service {
      * @return
      */
     public boolean isChampionListAvailible(){
-        if(isChampionsSaved() && mDataHash.getChampionList().getSize() > 0){ //Champs is local and volatile
+        if(mDataHash.getChampionList() != null){ //Champs is local and volatile
+            Constants.DEBUG_LOG(TAG,"ChampionListAvailable: Local");
             return true;
         } else if(isChampionsSaved()){  //User is only local, set the volatile
             mDataHash.setChampionList(getChampionsFromFile(getChampionsFileName()));
+            Constants.DEBUG_LOG(TAG,"ChampionListAvailable: Persistent");
             return true;
         } else { //champs is not available, I do not see a case where it is volatile and not local
+            Constants.DEBUG_LOG(TAG,"ChampionListAvailable: false");
             return false;
         }
     }
@@ -186,6 +191,8 @@ public class LoLAppService extends Service {
      * ***********************************************
      * *************NetWork Methods*******************
      * ***********************************************
+     * There is support for network calls to be done with startCommand and have a broadcast when completed.
+     * There is also support for network calls with a  bound service and passing listeners.
      */
 
     /**
@@ -193,10 +200,8 @@ public class LoLAppService extends Service {
      *
      * Pass the bundle along with the intent
      */
-    private void fetchChampionsBackground(Bundle params, int startID){
-        fetchAllChampions(VolleyTask.getRequestQueue(mContext),
-                null,
-                params,
+    private void fetchChampionsBackground(Bundle params, final int startID){
+        fetchAllChampions(params,
                 null,
                 new Response.Listener<JSONObject>() {
                     @Override
@@ -205,6 +210,10 @@ public class LoLAppService extends Service {
                         Intent mIntent = new Intent();
                         mIntent.setAction(ACTION_FETCH_CHAMPIONS_DONE);
                         sendBroadcast(mIntent);
+                        //Check if we stop service
+                        if(canDestroy()){
+                            stopSelf(startID);
+                        }
                     }
                 },
                 new Response.ErrorListener() {
@@ -214,6 +223,10 @@ public class LoLAppService extends Service {
                         Intent mIntent = new Intent();
                         mIntent.setAction(ACTION_FETCH_CHAMPIONS_DONE_FAIL);
                         sendBroadcast(mIntent);
+                        //Check if we stop service
+                        if(canDestroy()){
+                            stopSelf(startID);
+                        }
                     }
                 }
         );
@@ -226,8 +239,6 @@ public class LoLAppService extends Service {
      * The app should call these with intents and startService.
      */
     public void fetchAllChampions(
-            final RequestQueue queue,
-            final WebserviceRequest serviceRequest,
             final Bundle requestParams,
             final JSONBody body,
             final Response.Listener<JSONObject> successListener,
@@ -270,25 +281,33 @@ public class LoLAppService extends Service {
      * Pass the params as a bundle in the intent
      * @param params
      */
-    private void fetchChamionIdsBackground(Bundle params, int startID){
+    private void fetchChamionIdsBackground(Bundle params, final int startID){
         fetchAllChampionIds(params,
                 null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        mNotificationManager.cancel(R.string.service_data_fetch_champ);
+                        stopNotification(R.string.service_data_fetch_id);
                         Intent mIntent = new Intent();
                         mIntent.setAction(ACTION_FETCH_CHAMPIONIDS_DONE);
                         sendBroadcast(mIntent);
+                        //Check if we stop service
+                        if(canDestroy()){
+                            stopSelf(startID);
+                        }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        mNotificationManager.cancel(R.string.service_data_fetch_champ);
+                        stopNotification(R.string.service_data_fetch_id);
                         Intent mIntent = new Intent();
                         mIntent.setAction(ACTION_FETCH_CHAMPIONS_DONE_FAIL);
                         sendBroadcast(mIntent);
+                        //Check if we stop service
+                        if(canDestroy()){
+                            stopSelf(startID);
+                        }
                     }
                 }
         );
@@ -341,7 +360,7 @@ public class LoLAppService extends Service {
      *
      * Pass the bundle along with the intent
      */
-    private void fetchItemsBackground(Bundle params, int startID){
+    private void fetchItemsBackground(Bundle params, final int startID){
         fetchAllItems(params,
                 null,
                 new Response.Listener<JSONObject>() {
@@ -351,6 +370,10 @@ public class LoLAppService extends Service {
                         Intent mIntent = new Intent();
                         mIntent.setAction(ACTION_FETCH_ITEMS_DONE);
                         sendBroadcast(mIntent);
+                        //Check if we stop service
+                        if(canDestroy()){
+                            stopSelf(startID);
+                        }
                     }
                 },
                 new Response.ErrorListener() {
@@ -360,6 +383,10 @@ public class LoLAppService extends Service {
                         Intent mIntent = new Intent();
                         mIntent.setAction(ACTION_FETCH_ITEMS_DONE_FAIL);
                         sendBroadcast(mIntent);
+                        //Check if we stop service
+                        if(canDestroy()){
+                            stopSelf(startID);
+                        }
                     }
                 }
         );
@@ -425,6 +452,8 @@ public class LoLAppService extends Service {
      * @return
      */
     private File getChampionsFileName() {
+        Constants.DEBUG_LOG(TAG,"Champions file: " + LoLApp.getApp().getInternalOutputDirectory()
+                + Constants.FILE_NAME_CHAMPIONS);
         return new File(LoLApp.getApp().getInternalOutputDirectory()
                 + Constants.FILE_NAME_CHAMPIONS);
     }
@@ -462,11 +491,8 @@ public class LoLAppService extends Service {
      * @return
      */
     private Long getChampionsFileDate() {
-        if (isChampionsSaved()) {
-            File mFile = getChampionsFileName();
-            return mFile.lastModified();
-        }
-        return null;
+        File mFile = getChampionsFileName();
+        return mFile.lastModified();
     }
 
     /**
@@ -474,11 +500,8 @@ public class LoLAppService extends Service {
      * @return
      */
     private Long getChampionsIdsFileDate(){
-        if (isChampionIdsSaved()) {
-            File mFile = getChampionIdsFileName();
-            return mFile.lastModified();
-        }
-        return null;
+        File mFile = getChampionIdsFileName();
+        return mFile.lastModified();
     }
 
     /**
@@ -486,11 +509,8 @@ public class LoLAppService extends Service {
      * @return
      */
     private Long getItemsFileDate(){
-        if (isItemsSaved()) {
-            File mFile = getItemFileName();
-            return mFile.lastModified();
-        }
-        return null;
+        File mFile = getItemFileName();
+        return mFile.lastModified();
     }
 
     /**
@@ -521,20 +541,17 @@ public class LoLAppService extends Service {
      * @return
      */
     private ChampionListDTO getChampionsFromFile(File fileName) {
-        if (isChampionsSaved()) {
-            try {
-                String json = JSONSerializer.loadStringFile(fileName);
-                Gson gson = new Gson();
-                ChampionListDTO champList = gson.fromJson(json,ChampionListDTO.class);
-                mDataHash.setChampionList(champList);
-                return champList;
-            } catch (IOException e) {
-                //Probably means that the Champ file doesn't exist
-                e.printStackTrace();
-                return null;
-            }
+        try {
+            String json = JSONSerializer.loadStringFile(fileName);
+            Gson gson = new Gson();
+            ChampionListDTO champList = gson.fromJson(json,ChampionListDTO.class);
+            mDataHash.setChampionList(champList);
+            return champList;
+        } catch (IOException e) {
+            //Probably means that the Champ file doesn't exist
+            e.printStackTrace();
+            return null;
         }
-        return null;
     }
 
     /**
@@ -543,20 +560,17 @@ public class LoLAppService extends Service {
      * @return
      */
     private ChampionIDListDTO getChampionIdsFromFile(File fileName){
-        if (isChampionIdsSaved()) {
-            try {
-                String json = JSONSerializer.loadStringFile(fileName);
-                Gson gson = new Gson();
-                ChampionIDListDTO champList = gson.fromJson(json,ChampionIDListDTO.class);
-                mDataHash.setChampionIdList(champList);
-                return champList;
-            } catch (IOException e) {
-                //Probably means that the Champ file doesn't exist
-                e.printStackTrace();
-                return null;
-            }
+        try {
+            String json = JSONSerializer.loadStringFile(fileName);
+            Gson gson = new Gson();
+            ChampionIDListDTO champList = gson.fromJson(json,ChampionIDListDTO.class);
+            mDataHash.setChampionIdList(champList);
+            return champList;
+        } catch (IOException e) {
+            //Probably means that the Champ file doesn't exist
+            e.printStackTrace();
+            return null;
         }
-        return null;
     }
 
     /**
@@ -565,20 +579,17 @@ public class LoLAppService extends Service {
      * @return
      */
     private ItemListDTO getItemsFromFile(File filename){
-        if (isItemsSaved()) {
-            try {
-                String json = JSONSerializer.loadStringFile(filename);
-                Gson gson = new Gson();
-                ItemListDTO itemList = gson.fromJson(json,ItemListDTO.class);
-                mDataHash.setItemList(itemList);
-                return itemList;
-            } catch (IOException e) {
-                //Probably means that the Champ file doesn't exist
-                e.printStackTrace();
-                return null;
-            }
+        try {
+            String json = JSONSerializer.loadStringFile(filename);
+            Gson gson = new Gson();
+            ItemListDTO itemList = gson.fromJson(json,ItemListDTO.class);
+            mDataHash.setItemList(itemList);
+            return itemList;
+        } catch (IOException e) {
+            //Probably means that the Champ file doesn't exist
+            e.printStackTrace();
+            return null;
         }
-        return null;
     }
 
     /**
@@ -654,7 +665,7 @@ public class LoLAppService extends Service {
      */
     private boolean isUserSaved() {
         File mFile = getUserFileName();
-        Constants.DEBUG_LOG(TAG,"isUserSaved: " + mFile.toString());
+        Constants.DEBUG_LOG(TAG,"isUserSaved: " + mFile.exists());
         if (mFile.exists()) {
             if (isUserFileExpired()) {
                 logOutUser();
@@ -671,6 +682,7 @@ public class LoLAppService extends Service {
      */
     private boolean isChampionsSaved(){
         File mFile = getChampionsFileName();
+        Constants.DEBUG_LOG(TAG,"isChampionsSaved: " + mFile.exists());
         if (mFile.exists()) {
             if (isChampionsFileExpired()) {
                 deleteChampions();
@@ -728,8 +740,11 @@ public class LoLAppService extends Service {
     private boolean isChampionsFileExpired() {
         long champTime = getChampionsFileDate();
         Date now = new Date();
-        if ((now.getTime() - champTime) > TIME_TO_LIVE_STATIC)
+        if ((now.getTime() - champTime) > TIME_TO_LIVE_STATIC) {
+            Constants.DEBUG_LOG(TAG, "isChampionFileExpired: " + true);
             return true; //champ file is expired
+        }
+        Constants.DEBUG_LOG(TAG,"isChampionFileExpired: " + false);
         return false;
     }
 
@@ -777,17 +792,15 @@ public class LoLAppService extends Service {
      * Deletes the championslist file
      */
     private void deleteChampions(){
-        if (isChampionsSaved()) {
-            try {
-                File file = getChampionsFileName();
-                if (file.delete()) {//I don't see why this would ever be false
-                    mDataHash.deleteChampions();
-                } else {
-                    mDataHash.deleteChampions();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+        try {
+            File file = getChampionsFileName();
+            if (file.delete()) {//I don't see why this would ever be false
+                mDataHash.deleteChampions();
+            } else {
+                mDataHash.deleteChampions();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -957,6 +970,16 @@ public class LoLAppService extends Service {
 
         // We use a layout id because it is a unique number.  We use it later to cancel.
         mNotificationManager.notify(msg, notification);
+    }
+
+    /**
+     * Cancels the notification with this specific ID
+     * We are using the Views ID for notification ID
+     *
+     * @param msg
+     */
+    public void stopNotification(int msg){
+        mNotificationManager.cancel(msg);
     }
 
     /**

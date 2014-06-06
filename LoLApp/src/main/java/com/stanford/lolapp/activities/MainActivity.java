@@ -238,7 +238,7 @@ public class MainActivity extends Activity
      * @param dialog
      */
     @Override
-    public void onDialogPositiveClick(DialogInterface dialog){
+    public void onDialogPositiveClick(DialogInterface dialog,int type){
 
     }
 
@@ -248,7 +248,7 @@ public class MainActivity extends Activity
      * @param dialog
      */
     @Override
-    public void onDialogNegativeClick(DialogInterface dialog){
+    public void onDialogNegativeClick(DialogInterface dialog,int type){
 
     }
 

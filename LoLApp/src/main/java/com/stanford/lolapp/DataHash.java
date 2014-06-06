@@ -30,15 +30,15 @@ public class DataHash {
     private static User mUser;
 
     //Bools for checking state of data
-    private boolean isChampsAllLoaded = false;
-    private boolean isItemsAllLoaded = false;
+    private boolean isChampsAllLoaded   = false;
+    private boolean isItemsAllLoaded    = false;
     private boolean isChampIdsAllLoaded = false;
 
     private DataHash(){
-        this.mChampionIdList = new ChampionIDListDTO(); //I think I don't want this to ever be null
-        this.mChampionHash = new ChampionListDTO();     //I think I don't want this to ever be null
-        this.mItemHash = new ItemListDTO();             //I think I don't want this to ever be null
-        this.mUser = null;                              //This can be null I think.
+        this.mChampionIdList    = null;
+        this.mChampionHash      = null;
+        this.mItemHash          =  null;
+        this.mUser              = null;
     }
 
     /**
@@ -185,6 +185,8 @@ public class DataHash {
      * @return
      */
     public int sizeOfChampionList(){
+        if(mChampionHash == null)
+            return 0;
         return mChampionHash.getSize();
     }
 
@@ -193,6 +195,8 @@ public class DataHash {
      * @return
      */
     public int sizeOfItemList(){
+        if(mItemHash == null)
+            return 0;
         return mItemHash.getSize();
     }
 
@@ -205,11 +209,11 @@ public class DataHash {
     }
 
     public void deleteChampions(){
-        this.mChampionHash =  new ChampionListDTO(); //I think I don't want this to ever be null
+        this.mChampionHash =  null;
     }
 
     public void deleteChampionIDs(){
-        this.mChampionIdList =  new ChampionIDListDTO(); //I think I don't want this to ever be null
+        this.mChampionIdList =  null;
     }
 
     public void deleteUser(){
@@ -217,6 +221,6 @@ public class DataHash {
     }
 
     public void deleteItems(){
-        this.mItemHash =  new ItemListDTO(); //I think I don't want this to ever be null
+        this.mItemHash = null;
     }
 }
