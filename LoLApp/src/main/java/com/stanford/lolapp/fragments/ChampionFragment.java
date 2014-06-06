@@ -31,6 +31,7 @@ import com.stanford.lolapp.dialogs.ErrorDialog;
 import com.stanford.lolapp.interfaces.INoticeDialogListener;
 import com.stanford.lolapp.interfaces.OnFragmentInteractionListener;
 import com.stanford.lolapp.network.ChampionTask;
+import com.stanford.lolapp.network.WebService;
 import com.stanford.lolapp.service.LoLAppService;
 import com.stanford.lolapp.util.Constants;
 import com.stanford.lolapp.util.NetWorkConn;
@@ -96,6 +97,11 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         if (getArguments() != null) {
             mParamFocusChampID = getArguments().getInt(ARG_PARAM1);
         }
+
+        //Put in the params. TODO: get these from the shared prefs or have defaults.
+        mRequestParams = new Bundle();
+        mRequestParams.putString(WebService.PARAM_REQUIRED_LOCATION, WebService.location.na.getLocation());
+        mRequestParams.putString(WebService.PARAM_REQUIRED_LOCALE,WebService.locale.en_US.getLocale());
 
         //Check if data is stored volatile
         mAdapter = new ChampionListAdapter(getActivity());
@@ -167,7 +173,7 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
                     new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
-                            //Ids did not load
+                            mService.deleteChampionIds(); //Bad data so delete to prevent errors
                         }
                     });
             mService.fetchAllChampions(mRequestParams,null,
@@ -181,6 +187,7 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
                     new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
+                            mService.deleteChampions();//Bad data so delete to prevent errors
                             onDoneLoadData(false);
                         }
                     });
@@ -196,7 +203,7 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
                     new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
-                            //Ids did not load
+                            mService.deleteChampionIds();//Bad data so delete to prevent errors
                         }
                     });
             mService.fetchAllChampions(mRequestParams, null,
@@ -210,6 +217,8 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
                     new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
+                            //Data is bad, delete it
+                            mService.deleteChampions();//Bad data so delete to prevent errors
                             onDoneLoadData(false);
                         }
                     }
@@ -286,10 +295,10 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         mBound = true;
 
         //CheckData
-        if (mService.isChampionListAvailible()){
+        if (mService.isChampionListAvailible() && mService.isChampionIdListAvailible()){
             Constants.DEBUG_LOG(TAG,"Bound and Champs are available.");
             mAdapter.notifyDataSetChanged();
-        }else{
+        }else{//TODO: only download what we need, set that here?
             Constants.DEBUG_LOG(TAG,"Bound and Champs are not available");
             loadData();
         }

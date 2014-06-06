@@ -10,7 +10,6 @@ import android.os.Process;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.google.gson.Gson;
@@ -25,9 +24,6 @@ import com.stanford.lolapp.models.User;
 import com.stanford.lolapp.network.ChampionTask;
 import com.stanford.lolapp.network.ItemTask;
 import com.stanford.lolapp.network.JSONBody;
-import com.stanford.lolapp.network.VolleyTask;
-import com.stanford.lolapp.network.WebService;
-import com.stanford.lolapp.network.WebserviceRequest;
 import com.stanford.lolapp.util.Constants;
 import com.stanford.lolapp.util.JSONSerializer;
 

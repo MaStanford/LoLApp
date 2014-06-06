@@ -119,7 +119,12 @@ public class ChampionListDTO {
      */
     public ChampionDTO getChampionByPosition(int position){
         //Get the ID of the champion based on the position in the list of IDDTOs
-        int id = LoLApp.getApp().getDataHash().getChampionIdList().getItem(position).getId();
+        int id;
+        if(LoLApp.getApp().getDataHash().getChampionIdList().getItem(position) != null) {
+            id = LoLApp.getApp().getDataHash().getChampionIdList().getItem(position).getId();
+        }else{
+            return null;
+        }
         return getChampionByID(id);
     }
 

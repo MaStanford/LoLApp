@@ -73,7 +73,9 @@ public class ChampionListAdapter extends BaseAdapter{
      */
     @Override
     public long getItemId(int position) {
-        return mDataHash.getChampionByPos(position).getId();
+        if(mDataHash.getChampionByPos(position) != null)
+            return mDataHash.getChampionByPos(position).getId();
+        return 0;
     }
 
     /**
