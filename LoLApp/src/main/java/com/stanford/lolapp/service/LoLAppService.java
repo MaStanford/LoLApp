@@ -141,6 +141,7 @@ public class LoLAppService extends Service {
 
     /**
      * checks if the local persistence or volatile memory contains the the ChampionList
+     * TODO: Find a way to make sure the whole thing is downloaded or not.
      * @return
      */
     public boolean isChampionListAvailible(){
@@ -159,21 +160,26 @@ public class LoLAppService extends Service {
 
     /**
      * Check is the local persistence or volatile memory contains the championIDlist
+     * TODO: Find a way to make sure the whole thing is downloaded or not.
      * @return
      */
     public boolean isChampionIdListAvailible(){
-        if(isChampionIdsSaved() && mDataHash.getChampionIdList().getSize() > 0){ //IDs are local and volatile
+        if(mDataHash.getChampionIdList() != null){ //IDs are local and volatile
+            Constants.DEBUG_LOG(TAG,"ChampionIdListAvailable: Local");
             return true;
         } else if(isChampionIdsSaved()){  //IDs are only local
+            Constants.DEBUG_LOG(TAG,"ChampionIdListAvailable: persistence");
             mDataHash.setChampionIdList(getChampionIdsFromFile(getChampionIdsFileName()));
             return true;
         } else { //IDs are not available, I do not see a case where it is volatile and not local
+            Constants.DEBUG_LOG(TAG,"ChampionIdListAvailable: False");
             return false;
         }
     }
 
     /**
      * Check is the local persistence or volatile memory contains the championIDlist
+     * TODO: Find a way to make sure the whole thing is downloaded or not.
      * @return
      */
     public boolean isItemsAvailible(){
@@ -789,9 +795,18 @@ public class LoLAppService extends Service {
     }
 
     /**
+     * When data is bad, and need a restart
+     */
+    public void deleteData(){
+        deleteChampions();
+        deleteChampionIds();
+        deletItemsFile();
+    }
+
+    /**
      * Deletes the championslist file
      */
-    private void deleteChampions(){
+    public void deleteChampions(){
         try {
             File file = getChampionsFileName();
             if (file.delete()) {//I don't see why this would ever be false
@@ -807,36 +822,32 @@ public class LoLAppService extends Service {
     /**
      * Deletes the IDs list
      */
-    private void deleteChampionIds(){
-        if (isChampionIdsSaved()) {
-            try {
-                File file = getChampionIdsFileName();
-                if (file.delete()) {//I don't see why this would ever be false
-                    mDataHash.deleteChampionIDs();
-                } else {
-                    mDataHash.deleteChampionIDs();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+    public void deleteChampionIds(){
+        try {
+            File file = getChampionIdsFileName();
+            if (file.delete()) {//I don't see why this would ever be false
+                mDataHash.deleteChampionIDs();
+            } else {
+                mDataHash.deleteChampionIDs();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     /**
      * Deletes the items file
      */
-    private void deletItemsFile(){
-        if (isItemsSaved()) {
-            try {
-                File file = getItemFileName();
-                if (file.delete()) { //I don't see why this would ever be false
-                    mDataHash.deleteItems();
-                } else {
-                    mDataHash.deleteItems();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+    public void deletItemsFile(){
+        try {
+            File file = getItemFileName();
+            if (file.delete()) { //I don't see why this would ever be false
+                mDataHash.deleteItems();
+            } else {
+                mDataHash.deleteItems();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
