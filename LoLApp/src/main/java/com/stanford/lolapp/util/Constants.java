@@ -4,6 +4,7 @@ import android.content.pm.ApplicationInfo;
 import android.util.Log;
 
 import com.stanford.lolapp.LoLApp;
+import com.stanford.lolapp.network.WebService;
 
 /**
  * Created by Mark Stanford on 4/26/14.
@@ -24,6 +25,12 @@ public class Constants {
 
     //Shared Pref Keys
     public static final String KEY_SHARED_PREFS         = "com.stanford.lolapp.keySharedPrefs";
+    public static final String KEY_LOCALE               = "com.stanford.lolapp.keyLocale";
+    public static final String KEY_LOCATION             = "com.stanford.lolapp.keyLocation";
+
+    //Default prefs
+    public static final String DEFAULT_LOCALE           = WebService.locale.en_US.getLocale();
+    public static final String DEFAULT_LOCATION         = WebService.location.na.getLocation();
 
     //Account Manager keys
     public static final String KEY_ACCOUNT_MANAGER      = "com.stanford.lolapp.keyAcccountManager";
