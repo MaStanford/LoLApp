@@ -78,8 +78,6 @@ public class LoLAppService extends Service {
     public static final String ACTION_FETCH_MASTERYRUNES_DONE_FAIL      = "com.stanford.lolapp.actionFetchMasteryRunesDone";
 
     //Constants
-    public static final long TIME_TO_LIVE_USER = 259200000; //3 days
-    public static final long TIME_TO_LIVE_STATIC = 604800000;//7 days
     private final String TAG = "LoLAppService";
 
 
@@ -727,7 +725,7 @@ public class LoLAppService extends Service {
     private boolean isUserFileExpired() {
         long userTime = getUserFileDate();
         Date now = new Date();
-        if ((now.getTime() - userTime) > TIME_TO_LIVE_USER) {
+        if ((now.getTime() - userTime) > Constants.TIME_TO_LIVE_USER) {
             Constants.DEBUG_LOG(TAG, "isUserFileExpired: " + true);
             return true; //User file is expired
         }
@@ -742,7 +740,7 @@ public class LoLAppService extends Service {
     private boolean isChampionsFileExpired() {
         long champTime = getChampionsFileDate();
         Date now = new Date();
-        if ((now.getTime() - champTime) > TIME_TO_LIVE_STATIC) {
+        if ((now.getTime() - champTime) > Constants.TIME_TO_LIVE_STATIC) {
             Constants.DEBUG_LOG(TAG, "isChampionFileExpired: " + true);
             return true; //champ file is expired
         }
@@ -757,7 +755,7 @@ public class LoLAppService extends Service {
     private boolean isChampionIdsFileExpired(){
         long champTime = getChampionsIdsFileDate();
         Date now = new Date();
-        if ((now.getTime() - champTime) > TIME_TO_LIVE_STATIC)
+        if ((now.getTime() - champTime) > Constants.TIME_TO_LIVE_STATIC)
             return true; //champ file is expired
         return false;
     }
@@ -769,7 +767,7 @@ public class LoLAppService extends Service {
     private boolean isItemsFileExpired(){
         long itemTime = getItemsFileDate();
         Date now = new Date();
-        if ((now.getTime() - itemTime) > TIME_TO_LIVE_STATIC)
+        if ((now.getTime() - itemTime) > Constants.TIME_TO_LIVE_STATIC)
             return true; //champ file is expired
         return false;
     }

@@ -1,6 +1,7 @@
 package com.stanford.lolapp.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +23,7 @@ import java.util.ArrayList;
  */
 public class ChampionListAdapter extends BaseAdapter{
 
-    private static final String LOG_TAG = "ChampionListAdapter";
+    private static final String TAG = "ChampionListAdapter";
 
     private boolean mIsLoading = false;
 
@@ -110,7 +111,6 @@ public class ChampionListAdapter extends BaseAdapter{
             holder.tag = (TextView) convertView.findViewById(R.id.tv_list_champ_tag);
             holder.icon = (NetworkImageView) convertView.findViewById(R.id.iv_champion);
 
-
             convertView.setTag(holder);
         }else{
             holder = (ViewHolder) convertView.getTag();
@@ -123,10 +123,12 @@ public class ChampionListAdapter extends BaseAdapter{
         //Get the champion by the position number
         ChampionDTO champ;
         if((champ = mAppContext.getDataHash().getChampionByPos(position)) != null) {
+            Log.d(TAG,"Champ " + position + " is not null");
             holder.name.setText(champ.getName());
             holder.tag.setText(champ.getTag());
             holder.icon.setImageUrl(champ.getImageURL(), VolleyTask.getImageLoader(mContext));
         }else{
+            Log.d(TAG,"Champ " + position + " is null");
             loadPosition(position);
         }
 

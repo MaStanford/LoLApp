@@ -42,6 +42,10 @@ public class Constants {
     public static final String CREATE_OUT_DIR_ERROR     = "CREATE_OUT_DIR_ERROR";
     public static final String EXTERNAL_DIR_NOT_AVAIL   = "EXTERNAL_DIR_NOT_AVAIL";
 
+    //Time to live for local persistence
+    public static final long TIME_TO_LIVE_USER = 259200000; //3 days
+    public static final long TIME_TO_LIVE_STATIC = 604800000;//7 days
+
 
 
     /**

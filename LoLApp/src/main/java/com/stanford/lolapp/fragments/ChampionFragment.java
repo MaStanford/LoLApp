@@ -235,7 +235,7 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
      * Called when data is done loading
      */
     public void onDoneLoadData(boolean success){
-        Constants.DEBUG_LOG(TAG,"Data Loaded! isChampionListAvailible(): " + mService.isChampionListAvailible());
+        Constants.DEBUG_LOG(TAG,"Data Loaded! isChampionListAvailable(): " + mService.isChampionListAvailible());
         if(success) {
             mIsLoading = false;
             mProgressBar.setVisibility(ProgressBar.INVISIBLE);

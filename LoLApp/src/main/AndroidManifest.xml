@@ -3,27 +3,27 @@
     package="com.stanford.lolapp" >
 
     <application
-        android:debuggable="true"
-        android:name="com.stanford.lolapp.LoLApp"
+        android:name=".LoLApp"
         android:allowBackup="true"
+        android:debuggable="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.stanford.lolapp.activities.MainActivity"
+            android:name=".activities.MainActivity"
             android:label="@string/app_name" >
         </activity>
         <activity
-            android:name="com.stanford.lolapp.activities.LoginActivity"
+            android:name=".activities.LoginActivity"
             android:label="@string/title_activity_login"
             android:noHistory="true"
             android:windowSoftInputMode="adjustResize|stateVisible" >
         </activity>
         <activity
-            android:name="com.stanford.lolapp.activities.CreateUserActivity"
+            android:name=".activities.CreateUserActivity"
             android:label="@string/title_activity_create_user"
             android:noHistory="true"
-            android:parentActivityName="com.stanford.lolapp.activities.LoginActivity"
+            android:parentActivityName=".activities.LoginActivity"
             android:windowSoftInputMode="adjustResize|stateVisible" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -31,13 +31,13 @@
         </activity>
 
         <service
-            android:name="com.stanford.lolapp.service.LoLAppService"
+            android:name=".service.LoLAppService"
             android:enabled="true"
             android:exported="true" >
         </service>
 
         <activity
-            android:name="com.stanford.lolapp.activities.LaunchActivity"
+            android:name=".activities.LaunchActivity"
             android:label="@string/title_activity_start"
             android:noHistory="true" >
             <intent-filter>
@@ -47,14 +47,21 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.stanford.lolapp.activities.DataActivity"
+            android:name=".activities.DataActivity"
             android:label="@string/title_activity_data"
-            android:parentActivityName="com.stanford.lolapp.activities.MainActivity"
-            android:windowSoftInputMode="adjustResize|stateVisible">
+            android:parentActivityName=".activities.MainActivity"
+            android:windowSoftInputMode="adjustResize|stateVisible" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="MainActivity" />
         </activity>
+
+        <provider
+            android:name=".persistence.LoLAppContentProvider"
+            android:authorities="LoLApp"
+            android:enabled="true"
+            android:exported="true" >
+        </provider>
     </application>
 
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />

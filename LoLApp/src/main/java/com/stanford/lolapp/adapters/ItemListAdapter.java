@@ -173,7 +173,7 @@ public class ItemListAdapter extends BaseAdapter{
         //Create new webservice request here
         //Iterate through the keys you get from the IDlist
         mIsLoading = true;
-        //Recieved the results
+        //Received the results
         mIsLoading = false;
         this.notifyDataSetChanged();
     }
