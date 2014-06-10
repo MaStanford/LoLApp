@@ -50,6 +50,7 @@ import com.stanford.lolapp.network.LoLAppWebserviceRequest;
 import com.stanford.lolapp.network.Requests;
 import com.stanford.lolapp.network.VolleyTask;
 import com.stanford.lolapp.network.WebService;
+import com.stanford.lolapp.persistence.JSONFileUtil;
 import com.stanford.lolapp.service.LoLAppService;
 import com.stanford.lolapp.util.Constants;
 
@@ -69,8 +70,9 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
     private View mLoginFormView;
 
     //Globals
-    private LoLApp mContext = LoLApp.getApp();
-    private DataHash mDataHase =  LoLApp.getApp().getDataHash();
+    private LoLApp mContext;
+    private DataHash mDataHase;
+    private JSONFileUtil mFileUtil;
 
     private boolean mIsLoading = false;
 
@@ -97,6 +99,10 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_user);
         setupActionBar();
+
+        mContext = LoLApp.getApp();
+        mDataHase =  LoLApp.getApp().getDataHash();
+        mFileUtil = JSONFileUtil.getInstance();
 
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.et_email);
@@ -378,7 +384,7 @@ public class CreateUserActivity extends Activity implements LoaderCallbacks<Curs
                         User mUser = gson.fromJson(response.toString(),User.class);
                         mUser.setUsername(user);
                         mDataHase.setUser(mUser);
-                        mService.saveUserFile(mUser);
+                        mFileUtil.saveUserFile(mUser);
 
                         //Start new Activity
                         Intent mIntent = new Intent(mContext,MainActivity.class);

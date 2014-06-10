@@ -122,7 +122,7 @@ public class JSONFileUtil {
      *
      * @return
      */
-    private File getUserFileName() {
+    public File getUserFileName() {
         Constants.DEBUG_LOG(TAG,"User file: " + LoLApp.getApp().getInternalOutputDirectory()
                 + Constants.FILE_NAME_USER);
         return new File(LoLApp.getApp().getInternalOutputDirectory()
@@ -133,7 +133,7 @@ public class JSONFileUtil {
      * Returns the name of the Champions file
      * @return
      */
-    private File getChampionsFileName() {
+    public File getChampionsFileName() {
         Constants.DEBUG_LOG(TAG,"Champions file: " + LoLApp.getApp().getInternalOutputDirectory()
                 + Constants.FILE_NAME_CHAMPIONS);
         return new File(LoLApp.getApp().getInternalOutputDirectory()
@@ -144,7 +144,7 @@ public class JSONFileUtil {
      * Gets the filename of championIDs file
      * @return
      */
-    private File getChampionIdsFileName(){
+    public File getChampionIdsFileName(){
         return new File(LoLApp.getApp().getInternalOutputDirectory()
                 + Constants.FILE_NAME_CHAMPIONID);
     }
@@ -153,7 +153,7 @@ public class JSONFileUtil {
      * Returns the filename of the Items file
      * @return
      */
-    private File getItemFileName(){
+    public File getItemFileName(){
         return new File(LoLApp.getApp().getInternalOutputDirectory()
                 + Constants.FILE_NAME_ITEMS);
     }
@@ -163,7 +163,7 @@ public class JSONFileUtil {
      *
      * @return
      */
-    private Long getUserFileDate() {
+    public Long getUserFileDate() {
         File mFile = getUserFileName();
         return mFile.lastModified();
     }
@@ -172,7 +172,7 @@ public class JSONFileUtil {
      * returns the date of last mod of champions file
      * @return
      */
-    private Long getChampionsFileDate() {
+    public Long getChampionsFileDate() {
         File mFile = getChampionsFileName();
         return mFile.lastModified();
     }
@@ -181,7 +181,7 @@ public class JSONFileUtil {
      * Return the last modified date of the champion Id file
      * @return
      */
-    private Long getChampionsIdsFileDate(){
+    public Long getChampionsIdsFileDate(){
         File mFile = getChampionIdsFileName();
         return mFile.lastModified();
     }
@@ -190,7 +190,7 @@ public class JSONFileUtil {
      * Returns the last modified date of the items file
      * @return
      */
-    private Long getItemsFileDate(){
+    public Long getItemsFileDate(){
         File mFile = getItemFileName();
         return mFile.lastModified();
     }
@@ -200,7 +200,7 @@ public class JSONFileUtil {
      * @param fileName
      * @return
      */
-    private User getUserFromFile(File fileName) {
+    public User getUserFromFile(File fileName) {
         try {
             JSONObject jsonObject = JSONSerializer.loadJSONFile(fileName);
             User mUser = new User(jsonObject);
@@ -222,11 +222,11 @@ public class JSONFileUtil {
      * @param fileName
      * @return
      */
-    private ChampionListDTO getChampionsFromFile(File fileName) {
+    public ChampionListDTO getChampionsFromFile(File fileName) {
         try {
             String json = JSONSerializer.loadStringFile(fileName);
             Gson gson = new Gson();
-            ChampionListDTO champList = gson.fromJson(json,ChampionListDTO.class);
+            ChampionListDTO champList = ChampionListDTO.fromJSON(json);
             mDataHash.setChampionList(champList);
             return champList;
         } catch (IOException e) {
@@ -241,7 +241,7 @@ public class JSONFileUtil {
      * @param fileName
      * @return
      */
-    private ChampionIDListDTO getChampionIdsFromFile(File fileName){
+    public ChampionIDListDTO getChampionIdsFromFile(File fileName){
         try {
             String json = JSONSerializer.loadStringFile(fileName);
             Gson gson = new Gson();
@@ -260,7 +260,7 @@ public class JSONFileUtil {
      * @param filename
      * @return
      */
-    private ItemListDTO getItemsFromFile(File filename){
+    public ItemListDTO getItemsFromFile(File filename){
         try {
             String json = JSONSerializer.loadStringFile(filename);
             Gson gson = new Gson();
@@ -345,7 +345,7 @@ public class JSONFileUtil {
      * Checks to see if there is an active user file.  When the user logs out, the file should be deleted.
      * @return
      */
-    private boolean isUserSaved() {
+    public boolean isUserSaved() {
         File mFile = getUserFileName();
         Constants.DEBUG_LOG(TAG,"isUserSaved: " + mFile.exists());
         if (mFile.exists()) {
@@ -362,7 +362,7 @@ public class JSONFileUtil {
      * Checks to see if there is a champions file
      * @return
      */
-    private boolean isChampionsSaved(){
+    public boolean isChampionsSaved(){
         File mFile = getChampionsFileName();
         Constants.DEBUG_LOG(TAG,"isChampionsSaved: " + mFile.exists());
         if (mFile.exists()) {
@@ -375,7 +375,7 @@ public class JSONFileUtil {
         return false;
     }
 
-    private boolean isChampionIdsSaved(){
+    public boolean isChampionIdsSaved(){
         File mFile = getChampionIdsFileName();
         if (mFile.exists()) {
             if (isChampionIdsFileExpired()) {
@@ -387,7 +387,7 @@ public class JSONFileUtil {
         return false;
     }
 
-    private boolean isItemsSaved(){
+    public boolean isItemsSaved(){
         File mFile = getItemFileName();
         if (mFile.exists()) {
             if (isItemsFileExpired()) {
@@ -404,7 +404,7 @@ public class JSONFileUtil {
      *
      * @return
      */
-    private boolean isUserFileExpired() {
+    public boolean isUserFileExpired() {
         long userTime = getUserFileDate();
         Date now = new Date();
         if ((now.getTime() - userTime) > Constants.TIME_TO_LIVE_USER) {
@@ -419,7 +419,7 @@ public class JSONFileUtil {
      * Checks to see if the champions static data is expired
      * @return
      */
-    private boolean isChampionsFileExpired() {
+    public boolean isChampionsFileExpired() {
         long champTime = getChampionsFileDate();
         Date now = new Date();
         if ((now.getTime() - champTime) > Constants.TIME_TO_LIVE_STATIC) {
@@ -434,7 +434,7 @@ public class JSONFileUtil {
      * Checks if the championIDs file is expired.
      * @return
      */
-    private boolean isChampionIdsFileExpired(){
+    public boolean isChampionIdsFileExpired(){
         long champTime = getChampionsIdsFileDate();
         Date now = new Date();
         if ((now.getTime() - champTime) > Constants.TIME_TO_LIVE_STATIC)
@@ -446,7 +446,7 @@ public class JSONFileUtil {
      * Checks if the items file is expired
      * @return
      */
-    private boolean isItemsFileExpired(){
+    public boolean isItemsFileExpired(){
         long itemTime = getItemsFileDate();
         Date now = new Date();
         if ((now.getTime() - itemTime) > Constants.TIME_TO_LIVE_STATIC)

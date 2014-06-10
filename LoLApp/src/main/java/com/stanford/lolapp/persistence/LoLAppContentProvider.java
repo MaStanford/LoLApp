@@ -5,6 +5,15 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 
+/**
+ * I will implement if I decide to play nicely with other apps.
+ * I may implement a SQLite database also, I'm not sure if this will call the SQLite or the
+ *  JSON files
+ *
+ * @author Mark Stanford 6/9/2014
+ * @version 1
+ * @since Build 1
+ */
 public class LoLAppContentProvider extends ContentProvider {
     public LoLAppContentProvider() {
     }

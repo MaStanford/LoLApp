@@ -1,10 +1,8 @@
 package com.stanford.lolapp.models;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonParser;
 import com.stanford.lolapp.LoLApp;
 
-import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;

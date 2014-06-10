@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.widget.DrawerLayout;
@@ -17,6 +16,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.stanford.lolapp.DataHash;
+import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
 import com.stanford.lolapp.fragments.BuilderFragment;
 import com.stanford.lolapp.fragments.ChampionFragment;
@@ -29,6 +30,7 @@ import com.stanford.lolapp.fragments.SummonerFragment;
 import com.stanford.lolapp.interfaces.INoticeDialogListener;
 import com.stanford.lolapp.interfaces.IServiceCallback;
 import com.stanford.lolapp.interfaces.OnFragmentInteractionListener;
+import com.stanford.lolapp.persistence.JSONFileUtil;
 import com.stanford.lolapp.service.LoLAppService;
 import com.stanford.lolapp.util.Constants;
 
@@ -40,15 +42,18 @@ public class MainActivity extends Activity
         ,IServiceCallback {
 
     private LoLAppService mService;
+    private JSONFileUtil mFileUtil;
+    private DataHash mDatahash;
+    private LoLApp mContext;
     private boolean mBound = false;
 
-    public static final int HOME = 0;
-    public static final int CHAMPIONS = 1;
-    public static final int ITEMS = 2;
-    public static final int SUMMONERS = 3;
-    public static final int GAMES = 4;
-    public static final int DEEPS = 5;
-    public static final int BUILDER = 6;
+    public static final int HOME            = 0;
+    public static final int CHAMPIONS       = 1;
+    public static final int ITEMS           = 2;
+    public static final int SUMMONERS       = 3;
+    public static final int GAMES           = 4;
+    public static final int DEEPS           = 5;
+    public static final int BUILDER         = 6;
 
     private static final String TAG = "MainActivity";
 
@@ -81,6 +86,10 @@ public class MainActivity extends Activity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mContext = LoLApp.getApp();
+        mDatahash = mContext.getDataHash();
+        mFileUtil = JSONFileUtil.getInstance();
 
         mNavigationDrawerFragment = (NavigationDrawerFragment) getFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
@@ -215,7 +224,7 @@ public class MainActivity extends Activity
             case R.id.action_settings:
                 return true;
             case R.id.action_logout:
-                mService.logOutUser();
+                mFileUtil.logOutUser();
                 Intent mIntent = new Intent(this,LaunchActivity.class);
                 mIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
                 startActivity(mIntent);

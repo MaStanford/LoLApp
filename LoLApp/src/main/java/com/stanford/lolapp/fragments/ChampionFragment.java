@@ -22,6 +22,8 @@ import android.widget.ProgressBar;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.stanford.lolapp.DataHash;
+import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
 
 import com.stanford.lolapp.activities.MainActivity;
@@ -32,6 +34,7 @@ import com.stanford.lolapp.interfaces.INoticeDialogListener;
 import com.stanford.lolapp.interfaces.OnFragmentInteractionListener;
 import com.stanford.lolapp.network.ChampionTask;
 import com.stanford.lolapp.network.WebService;
+import com.stanford.lolapp.persistence.JSONFileUtil;
 import com.stanford.lolapp.service.LoLAppService;
 import com.stanford.lolapp.util.Constants;
 import com.stanford.lolapp.util.NetWorkConn;
@@ -51,14 +54,18 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
     public static final String TAG = "ChampionFragment";
 
     private OnFragmentInteractionListener mListener;
-    private static final String ARG_PARAM1 = "param1";
-    public static final String mSelectedChamp = "position";
+    private static final String ARG_PARAM1              = "param1";
+    public static final String mSelectedChamp           = "position";
     private ProgressBar mProgressBar;
     private boolean mIsLoading = false;
     private int mParamFocusChampID;
-    private LoLAppService mService;
     private boolean mBound = false;
     private Bundle mRequestParams;
+
+    private LoLApp mContext;
+    private DataHash mDataHash;
+    private JSONFileUtil mFileUtil;
+    private LoLAppService mService;
 
     /**
      * The fragment's ListView/GridView.
@@ -92,6 +99,10 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mContext = LoLApp.getApp();
+        mDataHash = mContext.getDataHash();
+        mFileUtil = JSONFileUtil.getInstance();
+
         fragmentManager = getFragmentManager();
 
         if (getArguments() != null) {
@@ -105,6 +116,15 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
 
         //Check if data is stored volatile
         mAdapter = new ChampionListAdapter(getActivity());
+
+        //CheckData
+        if (mFileUtil.isChampionListAvailible() && mFileUtil.isChampionIdListAvailible()){
+            Constants.DEBUG_LOG(TAG,"Bound and Champs are available.");
+            mAdapter.notifyDataSetChanged();
+        }else{//TODO: only download what we need, set that here?
+            Constants.DEBUG_LOG(TAG,"Bound and Champs are not available");
+            loadData();
+        }
     }
 
     @Override
@@ -163,37 +183,43 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         mProgressBar.setVisibility(ProgressBar.VISIBLE);
         if(NetWorkConn.isWifiConnected(getActivity())){ //Wifi is enabled.  Download everything
             Constants.DEBUG_LOG(TAG,"Loading data, wifi enabled.");
-            mService.fetchAllChampionIds(mRequestParams,null,
+            //Create Task
+            ChampionTask mTask = ChampionTask.getInstance();
+            mTask.fetchAllChampionIDs(mRequestParams, null,
                     new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject jsonObject) {
-                            Constants.DEBUG_LOG(TAG,"Finished loading IDs");
+                            Constants.DEBUG_LOG(TAG, "Finished loading IDs");
                         }
                     },
                     new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
-                            mService.deleteChampionIds(); //Bad data so delete to prevent errors
+                            mFileUtil.deleteChampionIds(); //Bad data so delete to prevent errors
                         }
-                    });
-            mService.fetchAllChampions(mRequestParams,null,
+                    }
+            );
+            mTask.fetchAllChampions(mRequestParams, null,
                     new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject jsonObject) {
-                            Constants.DEBUG_LOG(TAG,"Finished loading Champs");
+                            Constants.DEBUG_LOG(TAG, "Finished loading Champs");
                             onDoneLoadData(true);
                         }
                     },
                     new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
-                            mService.deleteChampions();//Bad data so delete to prevent errors
+                            mFileUtil.deleteChampions();//Bad data so delete to prevent errors
                             onDoneLoadData(false);
                         }
-                    });
+                    }
+            );
         }else if(NetWorkConn.isNetworkOnline(getActivity())){ //TODO: No wifi, download ranges of data
             Constants.DEBUG_LOG(TAG,"Loading Data, no wifi");
-            mService.fetchAllChampionIds(mRequestParams,null,
+            //Create the task
+            ChampionTask mTask = ChampionTask.getInstance();
+            mTask.fetchAllChampionIDs(mRequestParams,null,
                     new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject jsonObject) {
@@ -203,10 +229,10 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
                     new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
-                            mService.deleteChampionIds();//Bad data so delete to prevent errors
+                            mFileUtil.deleteChampionIds();//Bad data so delete to prevent errors
                         }
                     });
-            mService.fetchAllChampions(mRequestParams, null,
+            mTask.fetchAllChampions(mRequestParams, null,
                     new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject jsonObject) {
@@ -218,7 +244,7 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
                             //Data is bad, delete it
-                            mService.deleteChampions();//Bad data so delete to prevent errors
+                            mFileUtil.deleteChampions();//Bad data so delete to prevent errors
                             onDoneLoadData(false);
                         }
                     }
@@ -293,15 +319,6 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         LoLAppService.LocalBinder binder = (LoLAppService.LocalBinder) service;
         mService = binder.getService();
         mBound = true;
-
-        //CheckData
-        if (mService.isChampionListAvailible() && mService.isChampionIdListAvailible()){
-            Constants.DEBUG_LOG(TAG,"Bound and Champs are available.");
-            mAdapter.notifyDataSetChanged();
-        }else{//TODO: only download what we need, set that here?
-            Constants.DEBUG_LOG(TAG,"Bound and Champs are not available");
-            loadData();
-        }
     }
 
     @Override

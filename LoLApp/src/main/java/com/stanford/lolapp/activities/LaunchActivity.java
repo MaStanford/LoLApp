@@ -12,6 +12,7 @@ import android.os.IBinder;
 import com.stanford.lolapp.R;
 import com.stanford.lolapp.dialogs.ErrorDialog;
 import com.stanford.lolapp.interfaces.INoticeDialogListener;
+import com.stanford.lolapp.persistence.JSONFileUtil;
 import com.stanford.lolapp.service.LoLAppService;
 import com.stanford.lolapp.util.Constants;
 import com.stanford.lolapp.util.NetWorkConn;
@@ -27,6 +28,9 @@ public class LaunchActivity extends Activity implements INoticeDialogListener {
     private LoLAppService mService;
     private boolean mBound = false;
 
+    //File Util
+    JSONFileUtil mFileUtil;
+
     /***************************************************
      * Services
      *************************************************/
@@ -36,8 +40,6 @@ public class LaunchActivity extends Activity implements INoticeDialogListener {
             LoLAppService.LocalBinder binder = (LoLAppService.LocalBinder) service;
             mService = binder.getService();
             mBound = true;
-
-            checkConnection();
         }
         public void onServiceDisconnected(ComponentName className) {
             mBound = false;
@@ -48,6 +50,12 @@ public class LaunchActivity extends Activity implements INoticeDialogListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+
+        //Grab reference to the file util
+        mFileUtil = JSONFileUtil.getInstance();
+
+        //Check to see if connected to network.  Network is needed for this app for now.
+        checkConnection();
     }
 
     @Override
@@ -86,7 +94,7 @@ public class LaunchActivity extends Activity implements INoticeDialogListener {
     private void checkUser(){
         Constants.DEBUG_LOG(TAG,"Checking User: ");
         //Check if user is null, if null send to login, if not null send to main
-        if(mService.isUserAvailible()) {
+        if(mFileUtil.isUserAvailible()) {
             Constants.DEBUG_LOG(TAG,"User is availible.");
             Intent mIntent = new Intent(this,MainActivity.class);
             mIntent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);

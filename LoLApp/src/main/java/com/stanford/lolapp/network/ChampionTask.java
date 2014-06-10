@@ -85,10 +85,10 @@ public class ChampionTask {
      * @param successListener
      * @param errorListener
      */
-    public void fetchAllChampion(final Bundle requestParams,
-                                 final JSONBody body,
-                                 final Response.Listener<JSONObject> successListener,
-                                 final Response.ErrorListener errorListener) {
+    public void fetchAllChampions(final Bundle requestParams,
+                                  final JSONBody body,
+                                  final Response.Listener<JSONObject> successListener,
+                                  final Response.ErrorListener errorListener) {
         LoLAppWebserviceRequest request = new Requests.GetAllChampionData();
         WebService.makeRequest(requestQueue, request, requestParams, body, successListener, errorListener);
     }
