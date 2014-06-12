@@ -66,6 +66,11 @@ public class ChampionIDListDTO {
         return gson.toJson(this);
     }
 
+    public static ChampionIDListDTO fromJSON(String json){
+        Gson gson = new Gson();
+        return gson.fromJson(json,ChampionIDListDTO.class);
+    }
+
     /**
      * Returns a String of all the ChampionID objects toString
      * @return

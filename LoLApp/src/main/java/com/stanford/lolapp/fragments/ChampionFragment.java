@@ -32,7 +32,10 @@ import com.stanford.lolapp.dialogs.ChampionDialog;
 import com.stanford.lolapp.dialogs.ErrorDialog;
 import com.stanford.lolapp.interfaces.INoticeDialogListener;
 import com.stanford.lolapp.interfaces.OnFragmentInteractionListener;
+import com.stanford.lolapp.models.ChampionIDListDTO;
+import com.stanford.lolapp.models.ChampionListDTO;
 import com.stanford.lolapp.network.ChampionTask;
+import com.stanford.lolapp.network.Requests;
 import com.stanford.lolapp.network.WebService;
 import com.stanford.lolapp.persistence.JSONFileUtil;
 import com.stanford.lolapp.service.LoLAppService;
@@ -57,10 +60,15 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
     private static final String ARG_PARAM1              = "param1";
     public static final String mSelectedChamp           = "position";
     private ProgressBar mProgressBar;
+
     private boolean mIsLoading = false;
-    private int mParamFocusChampID;
     private boolean mBound = false;
+
+    private int mParamFocusChampID;
+
     private Bundle mRequestParams;
+    private Bundle mRequestParamsChamp;
+    private Bundle mRequestParamsIds;
 
     private LoLApp mContext;
     private DataHash mDataHash;
@@ -113,6 +121,14 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         mRequestParams = new Bundle();
         mRequestParams.putString(WebService.PARAM_REQUIRED_LOCATION, WebService.location.na.getLocation());
         mRequestParams.putString(WebService.PARAM_REQUIRED_LOCALE,WebService.locale.en_US.getLocale());
+
+        mRequestParamsChamp = new Bundle();
+        mRequestParamsChamp.putAll(mRequestParams);
+        mRequestParamsChamp.putString(Requests.GetAllChampionData
+                .PARAM_DATA,WebService.ChampData.all.getData());
+
+        mRequestParamsIds =  new Bundle();
+        mRequestParamsIds.putAll(mRequestParams);
 
         //Check if data is stored volatile
         mAdapter = new ChampionListAdapter(getActivity());
@@ -185,58 +201,36 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
             Constants.DEBUG_LOG(TAG,"Loading data, wifi enabled.");
             //Create Task
             ChampionTask mTask = ChampionTask.getInstance();
-            mTask.fetchAllChampionIDs(mRequestParams, null,
+            mTask.fetchAllChampionIDs(mRequestParamsIds, null,
                     new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject jsonObject) {
                             Constants.DEBUG_LOG(TAG, "Finished loading IDs");
+                            ChampionIDListDTO mList = ChampionIDListDTO.fromJSON(jsonObject.toString());
+                            mDataHash.setChampionIdList(mList);
+                            mFileUtil.saveChampionIdsFile(mList);
                         }
                     },
                     new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
-                            mFileUtil.deleteChampionIds(); //Bad data so delete to prevent errors
-                        }
-                    }
-            );
-            mTask.fetchAllChampions(mRequestParams, null,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject jsonObject) {
-                            Constants.DEBUG_LOG(TAG, "Finished loading Champs");
-                            onDoneLoadData(true);
-                        }
-                    },
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError volleyError) {
-                            mFileUtil.deleteChampions();//Bad data so delete to prevent errors
-                            onDoneLoadData(false);
-                        }
-                    }
-            );
-        }else if(NetWorkConn.isNetworkOnline(getActivity())){ //TODO: No wifi, download ranges of data
-            Constants.DEBUG_LOG(TAG,"Loading Data, no wifi");
-            //Create the task
-            ChampionTask mTask = ChampionTask.getInstance();
-            mTask.fetchAllChampionIDs(mRequestParams,null,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject jsonObject) {
-                            //IDs are loaded
-                        }
-                    },
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError volleyError) {
+                            //Data is bad, delete it
                             mFileUtil.deleteChampionIds();//Bad data so delete to prevent errors
+                            onDoneLoadData(false);
+                            ErrorDialog mDialog = ErrorDialog.newInstance(ErrorDialog.DIALOG_DOWNLOAD_ERROR, getActivity());
+                            mDialog.show(getFragmentManager(), TAG);
+                            Constants.DEBUG_LOG(TAG, "Attempt to load data but no connection.");
                         }
-                    });
-            mTask.fetchAllChampions(mRequestParams, null,
+                    }
+            );
+            mTask.fetchAllChampions(mRequestParamsChamp, null,
                     new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject jsonObject) {
                             Constants.DEBUG_LOG(TAG, "Finished loading Champs");
+                            ChampionListDTO mList = ChampionListDTO.fromJSON(jsonObject.toString());
+                            mDataHash.setChampionList(mList);
+                            mFileUtil.saveChampionsFile(mList);
                             onDoneLoadData(true);
                         }
                     },
@@ -246,6 +240,57 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
                             //Data is bad, delete it
                             mFileUtil.deleteChampions();//Bad data so delete to prevent errors
                             onDoneLoadData(false);
+                            ErrorDialog mDialog = ErrorDialog.newInstance(ErrorDialog.DIALOG_DOWNLOAD_ERROR, getActivity());
+                            mDialog.show(getFragmentManager(), TAG);
+                            Constants.DEBUG_LOG(TAG, "Attempt to load data but no connection.");
+                        }
+                    }
+            );
+        }else if(NetWorkConn.isNetworkOnline(getActivity())){ //TODO: No wifi, download ranges of data
+            Constants.DEBUG_LOG(TAG,"Loading Data, no wifi");
+            //Create the task
+            ChampionTask mTask = ChampionTask.getInstance();
+            mTask.fetchAllChampionIDs(mRequestParamsIds,null,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject jsonObject) {
+                            Constants.DEBUG_LOG(TAG, "Finished loading IDs");
+                            ChampionIDListDTO mList = ChampionIDListDTO.fromJSON(jsonObject.toString());
+                            mDataHash.setChampionIdList(mList);
+                            mFileUtil.saveChampionIdsFile(mList);
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError volleyError) {
+                            //Data is bad, delete it
+                            mFileUtil.deleteChampions();//Bad data so delete to prevent errors
+                            onDoneLoadData(false);
+                            ErrorDialog mDialog = ErrorDialog.newInstance(ErrorDialog.DIALOG_DOWNLOAD_ERROR, getActivity());
+                            mDialog.show(getFragmentManager(), TAG);
+                            Constants.DEBUG_LOG(TAG, "Attempt to load data but no connection.");
+                        }
+                    });
+            mTask.fetchAllChampions(mRequestParamsChamp, null,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject jsonObject) {
+                            Constants.DEBUG_LOG(TAG, "Finished loading Champs");
+                            ChampionListDTO mList = ChampionListDTO.fromJSON(jsonObject.toString());
+                            mDataHash.setChampionList(mList);
+                            mFileUtil.saveChampionsFile(mList);
+                            onDoneLoadData(true);
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError volleyError) {
+                            //Data is bad, delete it
+                            mFileUtil.deleteChampions();//Bad data so delete to prevent errors
+                            onDoneLoadData(false);
+                            ErrorDialog mDialog = ErrorDialog.newInstance(ErrorDialog.DIALOG_DOWNLOAD_ERROR, getActivity());
+                            mDialog.show(getFragmentManager(), TAG);
+                            Constants.DEBUG_LOG(TAG,"Attempt to load data but no connection.");
                         }
                     }
             );
@@ -355,6 +400,12 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
      */
     @Override
     public void onDialogNegativeClick(DialogInterface dialog, int type) {
-        getActivity().finish();
+        if(type == ErrorDialog.DIALOG_NETWORK_ERROR) {
+            if (!NetWorkConn.isNetworkOnline(getActivity())) {
+                getActivity().finish();
+            }
+        }else if(type == ErrorDialog.DIALOG_DOWNLOAD_ERROR){
+            //TODO: do something here I guess
+        }
     }
 }
