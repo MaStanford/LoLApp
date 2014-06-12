@@ -2,6 +2,7 @@ package com.stanford.lolapp.models;
 
 import com.google.gson.Gson;
 import com.stanford.lolapp.LoLApp;
+import com.stanford.lolapp.exceptions.ChampionNotFoundException;
 
 
 import java.util.HashMap;
@@ -86,9 +87,13 @@ public class ChampionListDTO {
      * @param id
      * @return Champion
      */
-    public ChampionDTO getChampionByID(int id){
-        String key = keys.get(String.valueOf(id));
-        return data.get(key);
+    public ChampionDTO getChampionByID(int id) throws ChampionNotFoundException {
+        if(keys.containsKey(String.valueOf(id))) {
+            String key = keys.get(String.valueOf(id));
+            return data.get(key);
+        }else {
+            throw new ChampionNotFoundException("");
+        }
     }
 
     /**
@@ -96,7 +101,7 @@ public class ChampionListDTO {
      * @param name
      * @return
      */
-    public ChampionDTO getChampionByKey(String name){
+    public ChampionDTO getChampionByKey(String name) throws ChampionNotFoundException {
         //Check if data map is by ID or Name
         if(PARAM_DATA_BY_ID){
             //If it is by key then we need to iterate through the map and match the key(name)
@@ -107,7 +112,7 @@ public class ChampionListDTO {
         }else{
             return data.get(name);
         }
-        return null;
+        throw new ChampionNotFoundException("There is no champion in list with that key");
     }
 
     /**
@@ -115,15 +120,20 @@ public class ChampionListDTO {
      * @param position
      * @return
      */
-    public ChampionDTO getChampionByPosition(int position){
-        //Get the ID of the champion based on the position in the list of IDDTOs
-        int id;
-        if(LoLApp.getApp().getDataHash().getChampionIdList().getItem(position) != null) {
-            id = LoLApp.getApp().getDataHash().getChampionIdList().getItem(position).getId();
+    public ChampionDTO getChampionByPosition(int position) throws ChampionNotFoundException {
+        //This will just iterate through the keys of the map.  It is best to get the id from the id
+        //data structure and call the get by ID method
+        if(data.keySet().size() <= position){
+            int i = 0;
+            String key = data.keySet().iterator().next();
+            while(i < position ){ //Don't need to check hasNext() since position can't go beyond size
+                key = data.keySet().iterator().next();
+            }
+            return data.get(key);
         }else{
-            return null;
+            //This means the positon is out of the size of keys
+            throw new ChampionNotFoundException("Position is out of bounds of the keyset");
         }
-        return getChampionByID(id);
     }
 
     public int getSize(){

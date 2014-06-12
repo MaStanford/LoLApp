@@ -91,6 +91,32 @@ public class Requests {
 
         public static final String PARAM_DATA = "champData"; //Use Enum for this
 
+        //Enum for ChampData parameter
+        public enum ChampData {
+            all("all"),
+            allytips("allytips"),
+            altimages("altimages"),
+            blurb("blurb"),
+            enemytips("enemytips"),
+            image("image"),
+            info("info"),
+            lore("lore"),
+            partype("partype"),
+            passive("passive"),
+            recommended("recommended"),
+            skins("skins"),
+            spells("spells"),
+            stats("stats"),
+            tags("tags");
+            private String mData = "";
+            ChampData(String data) {
+                this.mData = data;
+            }
+            public String getData() {
+                return this.mData;
+            }
+        }
+
         public GetAllChampionData() {
             super(WebService.SERVICE_GET_ALL_CHAMPION_DATA, WebService.PATH_GET_ALL_CHAMPS);
             mRequiredParams.add(WebService.PARAM_REQUIRED_LOCATION);
@@ -114,6 +140,37 @@ public class Requests {
     public static class GetAllItems extends LoLAppWebserviceRequest{
 
         public static final String PARAM_DATA = "itemListData"; //Use Enum for this
+
+        //Enum for item data parameter
+        public enum ItemData{
+            all("all"),
+            colloq("colloq"),
+            consumeOnFull("consumeOnFull"),
+            consumed("consumed"),
+            depth("depth"),
+            from("from"),
+            gold("gold"),
+            groups("groups"),
+            hideFromAll("hideFromAll"),
+            image("image"),
+            inStore("inStore"),
+            into("into"),
+            maps("maps"),
+            requiredChampion("requiredChampion"),
+            sanitizedDescription("sanitizedDescription"),
+            specialRecipe("specialRecipe"),
+            stacks("stacks"),
+            stats("stats"),
+            tags("tags"),
+            tree("tree");
+            private String param;
+            ItemData(String param){
+                this.param = param;
+            }
+            public String getParam(){
+                return this.param;
+            }
+        }
 
         public GetAllItems(){
             super(WebService.SERVICE_GET_ITEM_DATA, WebService.PATH_GET_ALL_ITEMS);

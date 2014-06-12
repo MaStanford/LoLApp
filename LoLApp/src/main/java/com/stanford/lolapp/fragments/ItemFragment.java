@@ -153,7 +153,7 @@ public class ItemFragment extends Fragment implements AbsListView.OnItemClickLis
         Bundle params = new Bundle();
         params.putString(WebService.PARAM_REQUIRED_LOCATION, WebService.location.na.getLocation());
         params.putString(WebService.PARAM_REQUIRED_LOCALE, WebService.locale.en_US.getLocale());
-        params.putString(Requests.GetAllItems.PARAM_DATA, WebService.ItemData.all.getParam());
+        params.putString(Requests.GetAllItems.PARAM_DATA, Requests.GetAllItems.ItemData.all.getParam());
         WebService.makeRequest(requestQueue, request, params,null,
                 new Response.Listener<JSONObject>() {
                     @Override

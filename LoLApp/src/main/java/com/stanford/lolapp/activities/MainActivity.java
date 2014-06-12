@@ -225,6 +225,7 @@ public class MainActivity extends Activity
                 return true;
             case R.id.action_logout:
                 mFileUtil.logOutUser();
+                mFileUtil.deleteData();//For debugging purposes TODO: remove this and have functionalityin the dataActivity
                 Intent mIntent = new Intent(this,LaunchActivity.class);
                 mIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
                 startActivity(mIntent);

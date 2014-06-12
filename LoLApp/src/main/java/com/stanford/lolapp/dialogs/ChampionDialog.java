@@ -90,7 +90,7 @@ public class ChampionDialog extends DialogFragment {
 
         View v = inflater.inflate(R.layout.dialog_champion, container);
         mTextView = (TextView) v.findViewById(R.id.tv_dialog_champion_details);
-        mTextView.setText(mChampion.toString());
+        mTextView.setText(mChampion.toString()); //TODO: Null check here and have default values
 
         getDialog().setTitle(mChampion.getName());
 

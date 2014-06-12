@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.stanford.lolapp.exceptions.ChampionNotFoundException;
 import com.stanford.lolapp.exceptions.ItemNotFoundException;
+import com.stanford.lolapp.fragments.ChampionFragment;
 import com.stanford.lolapp.models.ChampionDTO;
 import com.stanford.lolapp.models.ChampionIDListDTO;
 import com.stanford.lolapp.models.ChampionListDTO;
@@ -15,6 +16,8 @@ import java.util.List;
 
 /**
  * Created by Mark Stanford on 4/26/14.
+ *
+ * TODO: make getters throw exceptions if not found, none of this null checking BS
  */
 public class DataHash {
 
@@ -37,7 +40,7 @@ public class DataHash {
     private DataHash(){
         this.mChampionIdList    = null;
         this.mChampionHash      = null;
-        this.mItemHash          =  null;
+        this.mItemHash          = null;
         this.mUser              = null;
     }
 
@@ -101,12 +104,12 @@ public class DataHash {
      * @param position
      * @return
      */
-    public int getChampionIDbyPos(int position){
+    public int getChampionIDbyPos(int position) throws ChampionNotFoundException {
         try {
             return mChampionIdList.getIdByPosition(position);
         }catch (ChampionNotFoundException e){
             Log.d(TAG,"Position not found in ID list");
-            return -1;
+            throw new ChampionNotFoundException("Champion is not in ID list.");
         }
     }
 
@@ -129,9 +132,11 @@ public class DataHash {
      * @return
      */
     public ChampionDTO getChampionByKey(String key){
-        if(this.mChampionHash != null)
+        try{
             return this.mChampionHash.getChampionByKey(key);
-        return null;
+        }catch (ChampionNotFoundException e){
+            return null;
+        }
     }
 
     /**
@@ -140,8 +145,13 @@ public class DataHash {
      * @return
      */
     public ChampionDTO getChampionById(int id){
-        if(this.mChampionHash != null)
-            return this.mChampionHash.getChampionByID(id);
+        if(this.mChampionHash != null){
+            try{
+                return this.mChampionHash.getChampionByID(id);
+            }catch (ChampionNotFoundException e){
+                return null;
+            }
+        }
         return null;
     }
 
@@ -150,8 +160,13 @@ public class DataHash {
      * @param position
      */
     public ChampionDTO getChampionByPos(int position) {
-        if(this.mChampionHash != null)
-            return this.mChampionHash.getChampionByPosition(position);
+        if(this.mChampionHash != null){
+            try {
+                return this.mChampionHash.getChampionByPosition(position);
+            } catch (ChampionNotFoundException e) {
+                return null;
+            }
+        }
         return null;
     }
     /**
@@ -188,6 +203,16 @@ public class DataHash {
         if(mChampionHash == null)
             return 0;
         return mChampionHash.getSize();
+    }
+
+    /**
+     * returns the size of the champion data hash
+     * @return
+     */
+    public int sizeOfChampionIDList(){
+        if(mChampionIdList == null)
+            return 0;
+        return mChampionIdList.getSize();
     }
 
     /**

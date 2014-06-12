@@ -15,9 +15,6 @@ import com.stanford.lolapp.R;
 import com.stanford.lolapp.models.ChampionDTO;
 import com.stanford.lolapp.network.VolleyTask;
 
-import java.util.ArrayList;
-
-
 /**
  * Created by Mark Stanford on 4/28/14.
  */
@@ -51,7 +48,7 @@ public class ChampionListAdapter extends BaseAdapter{
      */
     @Override
     public int getCount() {
-        return mDataHash.sizeOfChampionList();
+        return mDataHash.sizeOfChampionIDList();
     }
 
     /**
@@ -74,9 +71,7 @@ public class ChampionListAdapter extends BaseAdapter{
      */
     @Override
     public long getItemId(int position) {
-        if(mDataHash.getChampionByPos(position) != null)
-            return mDataHash.getChampionByPos(position).getId();
-        return 0;
+        return mDataHash.getChampionIDbyPos(position);
     }
 
     /**
@@ -154,21 +149,20 @@ public class ChampionListAdapter extends BaseAdapter{
     private boolean isCloseToEnd(int position){
 
         //Grab the size of the champion map here
-        int sizeOfMap = mAppContext.getDataHash().sizeOfChampionList();
+        int sizeOfMap = mAppContext.getDataHash().sizeOfChampionIDList();
 
         return (position > sizeOfMap - 10) ? true : false;
     }
 
     private void loadMoreData(int position){
         //TODO: Make a call to the ChampionTask to load the next few items from the keys list.
-        //Figure out what to load, grab the keys from the ChampionIDList and get keys for the map
-        //Create new webservice request here
-        //Iterate through the keys you get from the IDlist
-        mIsLoading = true;
-        //Recieved the results
-        mIsLoading = false;
-        mAppContext.getDataHash().appendChampions(new ArrayList<ChampionDTO>()); //Getting this from the result
-        this.notifyDataSetChanged();
+//        Figure out what to load, grab the keys from the ChampionIDList and get keys for the map
+//        Create new webservice request here
+//        Iterate through the keys you get from the IDlist
+//        mIsLoading = true;
+//        //Recieved the results
+//        mIsLoading = false;
+//        this.notifyDataSetChanged();
     }
 
     private class ViewHolder{

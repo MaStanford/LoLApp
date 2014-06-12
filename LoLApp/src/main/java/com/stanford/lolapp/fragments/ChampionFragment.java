@@ -125,22 +125,13 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         mRequestParamsChamp = new Bundle();
         mRequestParamsChamp.putAll(mRequestParams);
         mRequestParamsChamp.putString(Requests.GetAllChampionData
-                .PARAM_DATA,WebService.ChampData.all.getData());
+                .PARAM_DATA,Requests.GetAllChampionData.ChampData.all.getData());
 
         mRequestParamsIds =  new Bundle();
         mRequestParamsIds.putAll(mRequestParams);
 
         //Check if data is stored volatile
         mAdapter = new ChampionListAdapter(getActivity());
-
-        //CheckData
-        if (mFileUtil.isChampionListAvailible() && mFileUtil.isChampionIdListAvailible()){
-            Constants.DEBUG_LOG(TAG,"Bound and Champs are available.");
-            mAdapter.notifyDataSetChanged();
-        }else{//TODO: only download what we need, set that here?
-            Constants.DEBUG_LOG(TAG,"Bound and Champs are not available");
-            loadData();
-        }
     }
 
     @Override
@@ -159,6 +150,15 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
 
         // Set OnItemClickListener so we can be notified on item clicks
         mListView.setOnItemClickListener(this);
+
+        //CheckData
+        if (mFileUtil.isChampionListAvailible() && mFileUtil.isChampionIdListAvailible()){
+            Constants.DEBUG_LOG(TAG,"Bound and Champs are available.");
+            mAdapter.notifyDataSetChanged();
+        }else{//TODO: only download what we need, set that here?
+            Constants.DEBUG_LOG(TAG,"Bound and Champs are not available");
+            loadData();
+        }
 
         return view;
     }
@@ -215,11 +215,8 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
                             //Data is bad, delete it
-                            mFileUtil.deleteChampionIds();//Bad data so delete to prevent errors
+                            mFileUtil.deleteChampionIds();
                             onDoneLoadData(false);
-                            ErrorDialog mDialog = ErrorDialog.newInstance(ErrorDialog.DIALOG_DOWNLOAD_ERROR, getActivity());
-                            mDialog.show(getFragmentManager(), TAG);
-                            Constants.DEBUG_LOG(TAG, "Attempt to load data but no connection.");
                         }
                     }
             );
@@ -238,11 +235,8 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
                             //Data is bad, delete it
-                            mFileUtil.deleteChampions();//Bad data so delete to prevent errors
+                            mFileUtil.deleteChampions();
                             onDoneLoadData(false);
-                            ErrorDialog mDialog = ErrorDialog.newInstance(ErrorDialog.DIALOG_DOWNLOAD_ERROR, getActivity());
-                            mDialog.show(getFragmentManager(), TAG);
-                            Constants.DEBUG_LOG(TAG, "Attempt to load data but no connection.");
                         }
                     }
             );
@@ -264,11 +258,8 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
                             //Data is bad, delete it
-                            mFileUtil.deleteChampions();//Bad data so delete to prevent errors
+                            mFileUtil.deleteChampions();
                             onDoneLoadData(false);
-                            ErrorDialog mDialog = ErrorDialog.newInstance(ErrorDialog.DIALOG_DOWNLOAD_ERROR, getActivity());
-                            mDialog.show(getFragmentManager(), TAG);
-                            Constants.DEBUG_LOG(TAG, "Attempt to load data but no connection.");
                         }
                     });
             mTask.fetchAllChampions(mRequestParamsChamp, null,
@@ -286,11 +277,8 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
                             //Data is bad, delete it
-                            mFileUtil.deleteChampions();//Bad data so delete to prevent errors
+                            mFileUtil.deleteChampions();
                             onDoneLoadData(false);
-                            ErrorDialog mDialog = ErrorDialog.newInstance(ErrorDialog.DIALOG_DOWNLOAD_ERROR, getActivity());
-                            mDialog.show(getFragmentManager(), TAG);
-                            Constants.DEBUG_LOG(TAG,"Attempt to load data but no connection.");
                         }
                     }
             );
