@@ -10,7 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
@@ -24,7 +23,6 @@ import com.stanford.lolapp.R;
 
 import com.stanford.lolapp.activities.MainActivity;
 import com.stanford.lolapp.adapters.ItemListAdapter;
-import com.stanford.lolapp.fragments.dummy.DummyContent;
 import com.stanford.lolapp.interfaces.OnFragmentInteractionListener;
 import com.stanford.lolapp.models.ItemListDTO;
 import com.stanford.lolapp.network.LoLAppWebserviceRequest;

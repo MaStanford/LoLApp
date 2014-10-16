@@ -1,11 +1,12 @@
 package com.stanford.lolapp.models;
 
 import com.google.gson.Gson;
-import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.exceptions.ChampionNotFoundException;
 
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -92,7 +93,7 @@ public class ChampionListDTO {
             String key = keys.get(String.valueOf(id));
             return data.get(key);
         }else {
-            throw new ChampionNotFoundException("");
+            throw new ChampionNotFoundException("Cannot find champion.");
         }
     }
 
@@ -121,17 +122,13 @@ public class ChampionListDTO {
      * @return
      */
     public ChampionDTO getChampionByPosition(int position) throws ChampionNotFoundException {
-        //This will just iterate through the keys of the map.  It is best to get the id from the id
-        //data structure and call the get by ID method
-        if(data.keySet().size() <= position){
-            int i = 0;
-            String key = data.keySet().iterator().next();
-            while(i < position ){ //Don't need to check hasNext() since position can't go beyond size
-                key = data.keySet().iterator().next();
-            }
-            return data.get(key);
+        //This will just iterate through the keys of the map.  It is best to get the id from the id data structure and call the get by ID method
+        if(data.keySet().size() <= position && position >= 0){
+            String[] keyList = (String[]) data.keySet().toArray();
+            Arrays.sort(keyList);
+            return data.get(keyList[position]);
         }else{
-            //This means the positon is out of the size of keys
+            //This means the position is out of the size of keys
             throw new ChampionNotFoundException("Position is out of bounds of the keyset");
         }
     }
@@ -163,7 +160,7 @@ public class ChampionListDTO {
 
 
         for (String key : keys.keySet()) {
-            sb.append(keys.get(key).toString());
+            sb.append(keys.get(key));
         }
 
         return "\nChampionListDTO{" + "\n" +

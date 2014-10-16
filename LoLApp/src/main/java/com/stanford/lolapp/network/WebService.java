@@ -21,7 +21,7 @@ public class WebService {
     private static final String TAG                             = "WebService";
 
     //Riot API key
-    public static final String RIOT_API_KEY                     = "b2bf733d-dbb0-47c1-a0c4-f71791727277";
+    public static final String RIOT_API_KEY                     = "7ecff9c6-6b6b-4d86-993f-2ee1c0ae300f";
     public static final String PARAM_RIOT_API_KEY               = "api_key";
 
     //Headers for Parse
@@ -30,7 +30,7 @@ public class WebService {
 
 
     // host names
-    public static final String PRODUCTION_RIOT_HOSTNAME         = "prod.api.pvp.net";
+    public static final String PRODUCTION_RIOT_HOSTNAME         = "na.api.pvp.net";
     public static final String PRODUCTION_PARSE_HOSTNAME        = "api.parse.com";
     public static final String PRODUCTION_RIOT_API_PREFIX       = "/api/lol";
     public static final String PRODUCTION_PARSE_API_VER         = "/1";
@@ -241,7 +241,7 @@ public class WebService {
     }
 
     /**
-     * Puts params into the bundle
+     * Puts params into the bundle, if null create empty.
      * @param requestParams
      * @return
      */

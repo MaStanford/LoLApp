@@ -4,13 +4,14 @@ import android.util.Log;
 
 import com.stanford.lolapp.exceptions.ChampionNotFoundException;
 import com.stanford.lolapp.exceptions.ItemNotFoundException;
-import com.stanford.lolapp.fragments.ChampionFragment;
 import com.stanford.lolapp.models.ChampionDTO;
 import com.stanford.lolapp.models.ChampionIDListDTO;
 import com.stanford.lolapp.models.ChampionListDTO;
 import com.stanford.lolapp.models.ItemDTO;
 import com.stanford.lolapp.models.ItemListDTO;
 import com.stanford.lolapp.models.User;
+import com.stanford.lolapp.persistence.JSONFileUtil;
+import com.stanford.lolapp.util.Constants;
 
 import java.util.List;
 
@@ -26,9 +27,9 @@ public class DataHash {
     //List of ChampionIDs
     private static ChampionIDListDTO mChampionIdList;
     //Hash of Champion Objects
-    private static ChampionListDTO mChampionHash;
+    private static ChampionListDTO mChampionList;
     //Hash of Item Objects
-    private static ItemListDTO mItemHash;
+    private static ItemListDTO mItemList;
     //Your user brodog
     private static User mUser;
 
@@ -39,8 +40,8 @@ public class DataHash {
 
     private DataHash(){
         this.mChampionIdList    = null;
-        this.mChampionHash      = null;
-        this.mItemHash          = null;
+        this.mChampionList      = null;
+        this.mItemList          = null;
         this.mUser              = null;
     }
 
@@ -71,31 +72,107 @@ public class DataHash {
     }
 
     public ChampionListDTO setChampionList(ChampionListDTO championlist){
-        this.mChampionHash = championlist;
+        this.mChampionList = championlist;
         this.isChampsAllLoaded = true;
-        return this.mChampionHash;
+        return this.mChampionList;
     }
 
     public ChampionListDTO getChampionList(){
-        return this.mChampionHash;
+        return this.mChampionList;
     }
 
     public boolean isChampListEmpty(){
-        return (mChampionHash.getSize() > 0);
+        return (mChampionList.getSize() > 0);
     }
 
     public ItemListDTO setItemList(ItemListDTO itemList){
-        this.mItemHash = itemList;
+        this.mItemList = itemList;
         this.isItemsAllLoaded = true;
-        return this.mItemHash;
+        return this.mItemList;
     }
 
     public ItemListDTO getItemList(){
-        return this.mItemHash;
+        return this.mItemList;
     }
 
     public boolean isItemListEmpty(){
-        return (mItemHash.getSize() > 0);
+        return (mItemList.getSize() > 0);
+    }
+
+    /**
+     * Checks if the local persistence or volatile memory contains the User Object
+     * @return
+     */
+    public boolean isUserAvailible(){
+        JSONFileUtil mFileUtil = JSONFileUtil.getInstance();
+        if(mFileUtil.isUserSaved() && getUser() != null){ //User is local and volatile
+            return true;
+        } else if(mFileUtil.isUserSaved()){  //User is only local, set the volatile
+            setUser(mFileUtil.getUserFromFile(mFileUtil.getUserFileName()));
+            return true;
+        } else { //User is not active, I do not see a case where it is volatile and not local
+            return false;
+        }
+    }
+
+    /**
+     * checks if the local persistence or volatile memory contains the the ChampionList
+     * TODO: Find a way to make sure the whole thing is downloaded or not.
+     * @return
+     */
+    public boolean isChampionListAvailible(){
+        JSONFileUtil mFileUtil = JSONFileUtil.getInstance();
+
+        if(getChampionList() != null){ //Champs is local and volatile
+            Constants.DEBUG_LOG(TAG, "ChampionListAvailable: Local");
+            return true;
+        } else if(mFileUtil.isChampionsSaved()){  //User is only local, set the volatile
+            setChampionList(mFileUtil.getChampionsFromFile(mFileUtil.getChampionsFileName()));
+            Constants.DEBUG_LOG(TAG,"ChampionListAvailable: Persistent");
+            return true;
+        } else { //champs is not available, I do not see a case where it is volatile and not local
+            Constants.DEBUG_LOG(TAG,"ChampionListAvailable: false");
+            return false;
+        }
+    }
+
+    /**
+     * Check is the local persistence or volatile memory contains the championIDlist
+     * TODO: Find a way to make sure the whole thing is downloaded or not.
+     * @return
+     */
+    public boolean isChampionIdListAvailible(){
+        JSONFileUtil mFileUtil = JSONFileUtil.getInstance();
+
+        if(getChampionIdList() != null){ //IDs are local and volatile
+            Constants.DEBUG_LOG(TAG,"ChampionIdListAvailable: Local");
+            return true;
+        } else if(mFileUtil.isChampionIdsSaved()){  //IDs are only local
+            Constants.DEBUG_LOG(TAG,"ChampionIdListAvailable: persistence");
+            setChampionIdList(mFileUtil.getChampionIdsFromFile(mFileUtil.getChampionIdsFileName()));
+            return true;
+        } else { //IDs are not available, I do not see a case where it is volatile and not local
+            Constants.DEBUG_LOG(TAG,"ChampionIdListAvailable: False");
+            return false;
+        }
+    }
+
+    /**
+     * Check is the local persistence or volatile memory contains the championIDlist
+     * TODO: Find a way to make sure the whole thing is downloaded or not.
+     * @return
+     */
+    public boolean isItemsAvailible(){
+        JSONFileUtil mFileUtil = JSONFileUtil.getInstance();
+
+        if(mFileUtil.isItemsSaved() && getItemList().getSize() > 0){ //IDs are local and volatile
+            return true;
+        } else if(mFileUtil.isChampionIdsSaved()){  //IDs are only local
+            setChampionIdList(mFileUtil.getChampionIdsFromFile(mFileUtil.getChampionIdsFileName()));
+            return true;
+        } else { //items are not available, I do not see a case where it is volatile and not local
+            return false;
+        }
     }
 
     /**
@@ -104,12 +181,12 @@ public class DataHash {
      * @param position
      * @return
      */
-    public int getChampionIDbyPos(int position) throws ChampionNotFoundException {
+    public int getChampionIDbyPos(int position){
         try {
             return mChampionIdList.getIdByPosition(position);
         }catch (ChampionNotFoundException e){
             Log.d(TAG,"Position not found in ID list");
-            throw new ChampionNotFoundException("Champion is not in ID list.");
+            return 0;
         }
     }
 
@@ -119,8 +196,8 @@ public class DataHash {
      * @return
      */
     public ChampionDTO setChampion(ChampionDTO champ){
-        if(this.mChampionHash != null) {
-            return this.mChampionHash.setChampion(champ);
+        if(this.mChampionList != null) {
+            return this.mChampionList.setChampion(champ);
         }
         return null;
     }
@@ -133,7 +210,7 @@ public class DataHash {
      */
     public ChampionDTO getChampionByKey(String key){
         try{
-            return this.mChampionHash.getChampionByKey(key);
+            return this.mChampionList.getChampionByKey(key);
         }catch (ChampionNotFoundException e){
             return null;
         }
@@ -145,9 +222,9 @@ public class DataHash {
      * @return
      */
     public ChampionDTO getChampionById(int id){
-        if(this.mChampionHash != null){
+        if(this.mChampionList != null){
             try{
-                return this.mChampionHash.getChampionByID(id);
+                return this.mChampionList.getChampionByID(id);
             }catch (ChampionNotFoundException e){
                 return null;
             }
@@ -160,9 +237,9 @@ public class DataHash {
      * @param position
      */
     public ChampionDTO getChampionByPos(int position) {
-        if(this.mChampionHash != null){
+        if(this.mChampionList != null){
             try {
-                return this.mChampionHash.getChampionByPosition(position);
+                return this.mChampionList.getChampionByPosition(position);
             } catch (ChampionNotFoundException e) {
                 return null;
             }
@@ -177,7 +254,7 @@ public class DataHash {
      */
     public ItemDTO getItemByPos(int position){
         try {
-            return mItemHash.getItemByPosition(position);
+            return mItemList.getItemByPosition(position);
         }catch (ItemNotFoundException e){
             Log.d(TAG,"Position not found in ID list");
             return null;
@@ -200,9 +277,9 @@ public class DataHash {
      * @return
      */
     public int sizeOfChampionList(){
-        if(mChampionHash == null)
+        if(mChampionList == null)
             return 0;
-        return mChampionHash.getSize();
+        return mChampionList.getSize();
     }
 
     /**
@@ -220,9 +297,9 @@ public class DataHash {
      * @return
      */
     public int sizeOfItemList(){
-        if(mItemHash == null)
+        if(mItemList == null)
             return 0;
-        return mItemHash.getSize();
+        return mItemList.getSize();
     }
 
     public User getUser() {
@@ -234,7 +311,7 @@ public class DataHash {
     }
 
     public void deleteChampions(){
-        this.mChampionHash =  null;
+        this.mChampionList =  null;
     }
 
     public void deleteChampionIDs(){
@@ -246,6 +323,6 @@ public class DataHash {
     }
 
     public void deleteItems(){
-        this.mItemHash = null;
+        this.mItemList = null;
     }
 }

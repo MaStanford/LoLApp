@@ -200,6 +200,7 @@ public class LoLAppService extends Service {
      * Pass the bundle along with the intent
      */
     private void fetchChampionsBackground(Bundle params, final int startID){
+        Constants.DEBUG_LOG(TAG, "fetchChamionIdsBackground : \n" + params.toString());
         fetchAllChampions(params,
                 null,
                 new Response.Listener<JSONObject>() {
@@ -281,6 +282,7 @@ public class LoLAppService extends Service {
      * @param params
      */
     private void fetchChamionIdsBackground(Bundle params, final int startID){
+        Constants.DEBUG_LOG(TAG, "fetchChamionIdsBackground : \n" + params.toString());
         fetchAllChampionIds(params,
                 null,
                 new Response.Listener<JSONObject>() {
@@ -490,7 +492,11 @@ public class LoLAppService extends Service {
         msg.arg1 = startId;
         mServiceHandler.sendMessage(msg);
 
-        Bundle params = intent.getBundleExtra(EXTRA_BUNDLE);
+        //Make sure that the caller sets the proper bundle
+        Bundle params = intent.getExtras();
+        //TODO: make a default params here in case someone forgets to put them
+
+
         //Check action to see what to do now
         switch(intent.getAction()){
             case(ACTION_FETCH_CHAMPIONIDS):

@@ -24,11 +24,9 @@ public class JSONFileUtil {
 
     public final String TAG = "JSONFileUtil";
     private DataHash mDataHash;
-    private LoLApp mContext;
 
     private JSONFileUtil(){
         mDataHash = DataHash.getInstance();
-        mContext = LoLApp.getApp();
     }
 
     /**
@@ -53,7 +51,7 @@ public class JSONFileUtil {
      * @return
      */
     public boolean isUserAvailible(){
-        if(isUserSaved() && mDataHash.getUser() != null){ //User is local and volatile
+        if(isUserSaved()) { // && (mDataHash.getUser() != null)){ //User is local and volatile
             return true;
         } else if(isUserSaved()){  //User is only local, set the volatile
             mDataHash.setUser(getUserFromFile(getUserFileName()));

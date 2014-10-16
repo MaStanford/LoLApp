@@ -4,14 +4,13 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.content.ComponentName;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.os.IBinder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,9 +18,8 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.stanford.lolapp.DataHash;
 import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
@@ -32,17 +30,11 @@ import com.stanford.lolapp.dialogs.ChampionDialog;
 import com.stanford.lolapp.dialogs.ErrorDialog;
 import com.stanford.lolapp.interfaces.INoticeDialogListener;
 import com.stanford.lolapp.interfaces.OnFragmentInteractionListener;
-import com.stanford.lolapp.models.ChampionIDListDTO;
-import com.stanford.lolapp.models.ChampionListDTO;
-import com.stanford.lolapp.network.ChampionTask;
 import com.stanford.lolapp.network.Requests;
 import com.stanford.lolapp.network.WebService;
-import com.stanford.lolapp.persistence.JSONFileUtil;
 import com.stanford.lolapp.service.LoLAppService;
 import com.stanford.lolapp.util.Constants;
 import com.stanford.lolapp.util.NetWorkConn;
-
-import org.json.JSONObject;
 
 /**
  * A fragment representing a list of Items.
@@ -52,7 +44,7 @@ import org.json.JSONObject;
  * <p />
  * Activities containing this fragment MUST implement the interface.
  */
-public class ChampionFragment extends Fragment implements AbsListView.OnItemClickListener, ServiceConnection, INoticeDialogListener {
+public class ChampionFragment extends Fragment implements AbsListView.OnItemClickListener, INoticeDialogListener {
 
     public static final String TAG = "ChampionFragment";
 
@@ -60,11 +52,9 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
     private static final String ARG_PARAM1              = "param1";
     public static final String mSelectedChamp           = "position";
     private ProgressBar mProgressBar;
-
     private boolean mIsLoading = false;
-    private boolean mBound = false;
 
-    private int mParamFocusChampID;
+    private int mParamFocusChampID = 0;
 
     private Bundle mRequestParams;
     private Bundle mRequestParamsChamp;
@@ -72,8 +62,6 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
 
     private LoLApp mContext;
     private DataHash mDataHash;
-    private JSONFileUtil mFileUtil;
-    private LoLAppService mService;
 
     /**
      * The fragment's ListView/GridView.
@@ -97,6 +85,21 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
     }
 
     /**
+     * Broadcast receiver
+     */
+    BroadcastReceiver dataReceiever = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(getActivity(), "onReceive Action: " + intent.getAction(), Toast.LENGTH_SHORT).show();
+            if (intent.getAction().equals(LoLAppService.ACTION_FETCH_CHAMPIONS_DONE)) {
+                onDoneLoadData(true);
+            } else if (intent.getAction().equals(LoLAppService.ACTION_FETCH_CHAMPIONS_DONE_FAIL)) {
+                onDoneLoadData(false);
+            }
+        }
+    };
+
+    /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
@@ -109,7 +112,6 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
 
         mContext = LoLApp.getApp();
         mDataHash = mContext.getDataHash();
-        mFileUtil = JSONFileUtil.getInstance();
 
         fragmentManager = getFragmentManager();
 
@@ -124,14 +126,14 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
 
         mRequestParamsChamp = new Bundle();
         mRequestParamsChamp.putAll(mRequestParams);
-        mRequestParamsChamp.putString(Requests.GetAllChampionData
-                .PARAM_DATA,Requests.GetAllChampionData.ChampData.all.getData());
+        mRequestParamsChamp.putString(Requests.GetAllChampionData.PARAM_DATA,Requests.GetAllChampionData.ChampData.all.getData());
 
         mRequestParamsIds =  new Bundle();
         mRequestParamsIds.putAll(mRequestParams);
 
         //Check if data is stored volatile
         mAdapter = new ChampionListAdapter(getActivity());
+        mAdapter.setFocus(mParamFocusChampID);
     }
 
     @Override
@@ -152,9 +154,9 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         mListView.setOnItemClickListener(this);
 
         //CheckData
-        if (mFileUtil.isChampionListAvailible() && mFileUtil.isChampionIdListAvailible()){
+        if (mDataHash.isChampionListAvailible()){
             Constants.DEBUG_LOG(TAG,"Bound and Champs are available.");
-            mAdapter.notifyDataSetChanged();
+            onDoneLoadData(true);
         }else{//TODO: only download what we need, set that here?
             Constants.DEBUG_LOG(TAG,"Bound and Champs are not available");
             loadData();
@@ -179,16 +181,18 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
                 + " must implement OnFragmentInteractionListener");
         }
 
-        getActivity().getApplicationContext()
-                .bindService(new Intent(getActivity(),
-                                LoLAppService.class), this,
-                        Context.BIND_AUTO_CREATE);
+        //Broadcast
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(LoLAppService.ACTION_FETCH_CHAMPIONS_DONE);
+        filter.addAction(LoLAppService.ACTION_FETCH_CHAMPIONS_DONE_FAIL);
+        getActivity().registerReceiver(dataReceiever, filter);
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        getActivity().unregisterReceiver(dataReceiever);
     }
 
     /**
@@ -197,104 +201,25 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
     public void loadData(){
         mIsLoading = true;
         mProgressBar.setVisibility(ProgressBar.VISIBLE);
-        if(NetWorkConn.isWifiConnected(getActivity())){ //Wifi is enabled.  Download everything
-            Constants.DEBUG_LOG(TAG,"Loading data, wifi enabled.");
-            //Create Task
-            ChampionTask mTask = ChampionTask.getInstance();
-            mTask.fetchAllChampionIDs(mRequestParamsIds, null,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject jsonObject) {
-                            Constants.DEBUG_LOG(TAG, "Finished loading IDs");
-                            ChampionIDListDTO mList = ChampionIDListDTO.fromJSON(jsonObject.toString());
-                            mDataHash.setChampionIdList(mList);
-                            mFileUtil.saveChampionIdsFile(mList);
-                        }
-                    },
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError volleyError) {
-                            //Data is bad, delete it
-                            mFileUtil.deleteChampionIds();
-                            onDoneLoadData(false);
-                        }
-                    }
-            );
-            mTask.fetchAllChampions(mRequestParamsChamp, null,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject jsonObject) {
-                            Constants.DEBUG_LOG(TAG, "Finished loading Champs");
-                            ChampionListDTO mList = ChampionListDTO.fromJSON(jsonObject.toString());
-                            mDataHash.setChampionList(mList);
-                            mFileUtil.saveChampionsFile(mList);
-                            onDoneLoadData(true);
-                        }
-                    },
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError volleyError) {
-                            //Data is bad, delete it
-                            mFileUtil.deleteChampions();
-                            onDoneLoadData(false);
-                        }
-                    }
-            );
-        }else if(NetWorkConn.isNetworkOnline(getActivity())){ //TODO: No wifi, download ranges of data
-            Constants.DEBUG_LOG(TAG,"Loading Data, no wifi");
-            //Create the task
-            ChampionTask mTask = ChampionTask.getInstance();
-            mTask.fetchAllChampionIDs(mRequestParamsIds,null,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject jsonObject) {
-                            Constants.DEBUG_LOG(TAG, "Finished loading IDs");
-                            ChampionIDListDTO mList = ChampionIDListDTO.fromJSON(jsonObject.toString());
-                            mDataHash.setChampionIdList(mList);
-                            mFileUtil.saveChampionIdsFile(mList);
-                        }
-                    },
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError volleyError) {
-                            //Data is bad, delete it
-                            mFileUtil.deleteChampions();
-                            onDoneLoadData(false);
-                        }
-                    });
-            mTask.fetchAllChampions(mRequestParamsChamp, null,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject jsonObject) {
-                            Constants.DEBUG_LOG(TAG, "Finished loading Champs");
-                            ChampionListDTO mList = ChampionListDTO.fromJSON(jsonObject.toString());
-                            mDataHash.setChampionList(mList);
-                            mFileUtil.saveChampionsFile(mList);
-                            onDoneLoadData(true);
-                        }
-                    },
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError volleyError) {
-                            //Data is bad, delete it
-                            mFileUtil.deleteChampions();
-                            onDoneLoadData(false);
-                        }
-                    }
-            );
-        } else {
-            //TODO: Handle this better than kicking user.
-            ErrorDialog mDialog = ErrorDialog.newInstance(ErrorDialog.DIALOG_NETWORK_ERROR, getActivity());
-            mDialog.show(getFragmentManager(), TAG);
-            Constants.DEBUG_LOG(TAG,"Attempt to load data but no connection.");
-        }
+
+        Bundle params = new Bundle();
+        params.putString(WebService.PARAM_REQUIRED_LOCATION, WebService.location.na.getLocation());
+        params.putString(WebService.PARAM_REQUIRED_LOCALE, WebService.locale.en_US.getLocale());
+        params.putString(Requests.GetAllChampionData.PARAM_DATA, Requests.GetAllChampionData.ChampData.all.getData());
+
+
+        Intent loadDataIntent = new Intent();
+        loadDataIntent.putExtras(params);
+        loadDataIntent.setAction(LoLAppService.ACTION_FETCH_CHAMPIONS);
+        loadDataIntent.setClass(getActivity(), LoLAppService.class);
+        getActivity().startService(loadDataIntent);
     }
 
     /**
      * Called when data is done loading
      */
     public void onDoneLoadData(boolean success){
-        Constants.DEBUG_LOG(TAG,"Data Loaded! isChampionListAvailable(): " + mService.isChampionListAvailible());
+        Constants.DEBUG_LOG(TAG, "Data Loaded! isChampionListAvailable(): " + mDataHash.isChampionListAvailible());
         if(success) {
             mIsLoading = false;
             mProgressBar.setVisibility(ProgressBar.INVISIBLE);
@@ -336,34 +261,6 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
             mBundle.putInt(mSelectedChamp,position);
             mListener.onFragmentInteraction(mBundle);
         }
-    }
-
-    @Override
-    public void onDestroy() {
-        getActivity().getApplicationContext().unbindService(this);
-        disconnect();
-
-        super.onDestroy();
-    }
-
-    @Override
-    public void onServiceConnected(ComponentName name, IBinder service) {
-        Constants.DEBUG_LOG(TAG,"Service Connected");
-        LoLAppService.LocalBinder binder = (LoLAppService.LocalBinder) service;
-        mService = binder.getService();
-        mBound = true;
-    }
-
-    @Override
-    public void onServiceDisconnected(ComponentName name) {
-        Constants.DEBUG_LOG(TAG,"Service Disconnected");
-
-        disconnect();
-    }
-
-    private void disconnect() {
-        mBound = false;
-        mService = null;
     }
 
     /**

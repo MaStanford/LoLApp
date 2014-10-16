@@ -14,6 +14,7 @@ import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
 import com.stanford.lolapp.models.ChampionDTO;
 import com.stanford.lolapp.network.VolleyTask;
+import com.stanford.lolapp.util.Constants;
 
 /**
  * Created by Mark Stanford on 4/28/14.
@@ -48,6 +49,7 @@ public class ChampionListAdapter extends BaseAdapter{
      */
     @Override
     public int getCount() {
+        Constants.DEBUG_LOG(TAG,"Size of champlist in adapter: " + mDataHash.sizeOfChampionIDList());
         return mDataHash.sizeOfChampionIDList();
     }
 
@@ -163,6 +165,13 @@ public class ChampionListAdapter extends BaseAdapter{
 //        //Recieved the results
 //        mIsLoading = false;
 //        this.notifyDataSetChanged();
+    }
+
+    /**
+     * Sets the focused champ in the list
+     * @param mParamFocusChampID
+     */
+    public void setFocus(int mParamFocusChampID) {
     }
 
     private class ViewHolder{

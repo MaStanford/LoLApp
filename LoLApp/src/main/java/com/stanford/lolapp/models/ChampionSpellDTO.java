@@ -14,7 +14,7 @@ public class ChampionSpellDTO {
     String costBurn;
     String costType;
     String description;
-    List<List<Integer>> effect;	//This field is a List of List of Integer.
+    List<List<Double>> effect;	//This field is a List of List of Integer.
     List<String> effectBurn;
     ImageDTO image;
     String key;
@@ -85,11 +85,11 @@ public class ChampionSpellDTO {
         this.description = description;
     }
 
-    public List<List<Integer>> getEffect() {
+    public List<List<Double>> getEffect() {
         return effect;
     }
 
-    public void setEffect(List<List<Integer>> effect) {
+    public void setEffect(List<List<Double>> effect) {
         this.effect = effect;
     }
 
