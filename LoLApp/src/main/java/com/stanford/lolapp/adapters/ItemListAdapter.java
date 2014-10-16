@@ -121,7 +121,7 @@ public class ItemListAdapter extends BaseAdapter{
         if((item = mAppContext.getDataHash().getItemByPos(position)) != null) {
             holder.name.setText(item.getName());
             holder.tag.setText(item.getTags().toString());
-            holder.icon.setImageUrl(item.getImageURL(), VolleyTask.getImageLoader(mContext));
+            holder.icon.setImageUrl(item.getImageURL(), VolleyTask.getImageLoader());
             holder.icon.setErrorImageResId(R.drawable.ic_launcher);
             //set observer to view
             holder.icon.setResponseObserver(new VolleyImageView.ResponseObserver() {

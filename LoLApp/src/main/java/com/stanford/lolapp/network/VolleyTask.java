@@ -40,7 +40,7 @@ public class VolleyTask {
         return mRequestQueue;
     }
 
-    public static ImageLoader getImageLoader(Context context) {
+    public static ImageLoader getImageLoader() {
         if (mImageLoader == null) {
             mImageLoader = new ImageLoader(mRequestQueue, new ImageLoader.ImageCache() {
                 private final LruCache<String, Bitmap> mCache = new LruCache<String, Bitmap>(10);

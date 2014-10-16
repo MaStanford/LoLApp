@@ -108,6 +108,7 @@ public class ChampionListAdapter extends BaseAdapter{
             holder.name = (TextView) convertView.findViewById(R.id.tv_list_champ_name);
             holder.tag = (TextView) convertView.findViewById(R.id.tv_list_champ_tag);
             holder.icon = (VolleyImageView) convertView.findViewById(R.id.iv_champion);
+            holder.pbar = (ProgressBar) convertView.findViewById(R.id.champ_image_progress);
 
             convertView.setTag(holder);
         }else{
@@ -125,8 +126,7 @@ public class ChampionListAdapter extends BaseAdapter{
             Log.d(TAG, "Champ " + position + " is not null" + " ImageURL: " + champ.getImageURL());
             holder.name.setText(champ.getName());
             holder.tag.setText(champ.getTag());
-            holder.pbar = (ProgressBar) convertView.findViewById(R.id.item_image_progress);
-            holder.icon.setImageUrl(champ.getImageURL(), VolleyTask.getImageLoader(mContext));
+            holder.icon.setImageUrl(champ.getImageURL(), VolleyTask.getImageLoader());
             holder.icon.setErrorImageResId(R.drawable.ic_launcher);
             //set observer to view
             holder.icon.setResponseObserver(new VolleyImageView.ResponseObserver() {

@@ -132,7 +132,7 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         mRequestParamsIds.putAll(mRequestParams);
 
         //Check if data is stored volatile
-        mAdapter = new ChampionListAdapter(getActivity().getBaseContext());
+        mAdapter = new ChampionListAdapter(mAppContext);
         mAdapter.setFocus(mParamFocusChampID);
     }
 
