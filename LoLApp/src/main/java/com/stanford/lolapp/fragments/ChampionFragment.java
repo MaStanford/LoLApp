@@ -60,7 +60,7 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
     private Bundle mRequestParamsChamp;
     private Bundle mRequestParamsIds;
 
-    private LoLApp mContext;
+    private LoLApp mAppContext;
     private DataHash mDataHash;
 
     /**
@@ -110,8 +110,8 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mContext = LoLApp.getApp();
-        mDataHash = mContext.getDataHash();
+        mAppContext = LoLApp.getApp();
+        mDataHash = mAppContext.getDataHash();
 
         fragmentManager = getFragmentManager();
 
@@ -132,7 +132,7 @@ public class ChampionFragment extends Fragment implements AbsListView.OnItemClic
         mRequestParamsIds.putAll(mRequestParams);
 
         //Check if data is stored volatile
-        mAdapter = new ChampionListAdapter(getActivity());
+        mAdapter = new ChampionListAdapter(getActivity().getBaseContext());
         mAdapter.setFocus(mParamFocusChampID);
     }
 

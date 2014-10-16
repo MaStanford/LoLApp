@@ -28,7 +28,6 @@ import com.stanford.lolapp.fragments.ItemFragment;
 import com.stanford.lolapp.fragments.NavigationDrawerFragment;
 import com.stanford.lolapp.fragments.SummonerFragment;
 import com.stanford.lolapp.interfaces.INoticeDialogListener;
-import com.stanford.lolapp.interfaces.IServiceCallback;
 import com.stanford.lolapp.interfaces.OnFragmentInteractionListener;
 import com.stanford.lolapp.persistence.JSONFileUtil;
 import com.stanford.lolapp.service.LoLAppService;
@@ -38,8 +37,7 @@ import com.stanford.lolapp.util.Constants;
 public class MainActivity extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks
         ,OnFragmentInteractionListener
-        ,INoticeDialogListener
-        ,IServiceCallback {
+        ,INoticeDialogListener{
 
     private LoLAppService mService;
     private JSONFileUtil mFileUtil;
@@ -237,9 +235,10 @@ public class MainActivity extends Activity
 
     @Override
     public void onFragmentInteraction(Bundle bundle) {
-        Intent mIntent = new Intent(this,LoLAppService.class);
-        mIntent.setAction(LoLAppService.ACTION_FETCH_CHAMPIONS);
-        startService(mIntent);
+          //TODO: Why do I have this here
+//        Intent mIntent = new Intent(this,LoLAppService.class);
+//        mIntent.setAction(LoLAppService.ACTION_FETCH_CHAMPIONS);
+//        startService(mIntent);
     }
 
     /**
@@ -260,9 +259,5 @@ public class MainActivity extends Activity
     @Override
     public void onDialogNegativeClick(DialogInterface dialog,int type){
 
-    }
-
-    @Override public LoLAppService getService(){
-        return this.mService;
     }
 }

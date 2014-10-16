@@ -4,10 +4,26 @@
     android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.android.volley.toolbox.NetworkImageView
+    <RelativeLayout
+        android:id="@+id/relative_container"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/iv_champion" />
+        android:layout_height="wrap_content">
+
+        <com.stanford.lolapp.views.VolleyImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/iv_champion" />
+
+        <ProgressBar
+            android:id="@+id/champ_image_progress"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:visibility="visible"/>
+
+    </RelativeLayout>
+
 
     <TextView
         android:layout_width="wrap_content"

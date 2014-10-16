@@ -241,9 +241,11 @@ public class DataHash {
             try {
                 return this.mChampionList.getChampionByPosition(position);
             } catch (ChampionNotFoundException e) {
+                Constants.DEBUG_LOG(TAG, "getChampionByPos Cannot find champion!");
                 return null;
             }
         }
+        Constants.DEBUG_LOG(TAG, "getChampionByPos List is null!");
         return null;
     }
     /**

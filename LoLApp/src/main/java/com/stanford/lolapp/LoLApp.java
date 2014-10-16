@@ -4,6 +4,8 @@ import android.app.Application;
 import android.content.SharedPreferences;
 import android.os.Environment;
 
+import com.stanford.lolapp.network.Requests;
+import com.stanford.lolapp.network.WebService;
 import com.stanford.lolapp.util.Constants;
 import com.stanford.lolapp.util.FileSystemUtil;
 
@@ -18,6 +20,26 @@ public class LoLApp extends Application {
 
     private static LoLApp mInstance;
     private static DataHash mDataHash;
+
+    /**
+     * Shared Prefs keys
+     */
+
+    //Locale
+    public static final String KEY_LOCALE       =  "com.stanford.lolapp.key_locale";
+    //Location
+    public static final String KEY_LOCATION     =  "com.stanford.lolapp.key_location";
+    //Champ data
+    public static final String KEY_CHAMPDATA    =  "com.stanford.lolapp.key_champData";
+
+    /**
+     * Defaults
+     */
+
+    public static final String DEFAULT_LOCALE           =  WebService.locale.en_US.getLocale();
+    public static final String DEFAULT_LOCATION         =  WebService.location.na.getLocation();
+    public static final String DEFAULT_CHAMPDATA        =  Requests.GetAllChampionData.ChampData.all.getData();
+
 
     /**
      * Called when the application is starting, before any activity, service,

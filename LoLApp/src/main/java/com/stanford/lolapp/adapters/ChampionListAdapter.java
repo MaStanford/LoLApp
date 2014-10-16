@@ -6,15 +6,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.android.volley.toolbox.NetworkImageView;
 import com.stanford.lolapp.DataHash;
 import com.stanford.lolapp.LoLApp;
 import com.stanford.lolapp.R;
 import com.stanford.lolapp.models.ChampionDTO;
 import com.stanford.lolapp.network.VolleyTask;
 import com.stanford.lolapp.util.Constants;
+import com.stanford.lolapp.views.VolleyImageView;
 
 /**
  * Created by Mark Stanford on 4/28/14.
@@ -49,8 +50,8 @@ public class ChampionListAdapter extends BaseAdapter{
      */
     @Override
     public int getCount() {
-        Constants.DEBUG_LOG(TAG,"Size of champlist in adapter: " + mDataHash.sizeOfChampionIDList());
-        return mDataHash.sizeOfChampionIDList();
+        Constants.DEBUG_LOG(TAG,"Size of champlist in adapter: " + mDataHash.sizeOfChampionList());
+        return mDataHash.sizeOfChampionList();
     }
 
     /**
@@ -73,7 +74,7 @@ public class ChampionListAdapter extends BaseAdapter{
      */
     @Override
     public long getItemId(int position) {
-        return mDataHash.getChampionIDbyPos(position);
+        return -1;//mDataHash.getChampionIDbyPos(position);
     }
 
     /**
@@ -97,7 +98,7 @@ public class ChampionListAdapter extends BaseAdapter{
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        ViewHolder holder;
+        final ViewHolder holder;
 
         if(convertView == null){
             holder = new ViewHolder();
@@ -106,7 +107,7 @@ public class ChampionListAdapter extends BaseAdapter{
 
             holder.name = (TextView) convertView.findViewById(R.id.tv_list_champ_name);
             holder.tag = (TextView) convertView.findViewById(R.id.tv_list_champ_tag);
-            holder.icon = (NetworkImageView) convertView.findViewById(R.id.iv_champion);
+            holder.icon = (VolleyImageView) convertView.findViewById(R.id.iv_champion);
 
             convertView.setTag(holder);
         }else{
@@ -119,11 +120,26 @@ public class ChampionListAdapter extends BaseAdapter{
          */
         //Get the champion by the position number
         ChampionDTO champ;
+        //TODO: check to make sure data exists for each view in the champ
         if((champ = mAppContext.getDataHash().getChampionByPos(position)) != null) {
-            Log.d(TAG,"Champ " + position + " is not null");
+            Log.d(TAG, "Champ " + position + " is not null" + " ImageURL: " + champ.getImageURL());
             holder.name.setText(champ.getName());
             holder.tag.setText(champ.getTag());
+            holder.pbar = (ProgressBar) convertView.findViewById(R.id.item_image_progress);
             holder.icon.setImageUrl(champ.getImageURL(), VolleyTask.getImageLoader(mContext));
+            holder.icon.setErrorImageResId(R.drawable.ic_launcher);
+            //set observer to view
+            holder.icon.setResponseObserver(new VolleyImageView.ResponseObserver() {
+                @Override
+                public void onError() {
+                    Constants.DEBUG_LOG(TAG,"OnError called in imageView listener");
+                }
+                @Override
+                public void onSuccess() {
+                    Constants.DEBUG_LOG(TAG,"OnSuccess called in imageView listener");
+                    holder.pbar.setVisibility(ProgressBar.INVISIBLE);
+                }
+            });
         }else{
             Log.d(TAG,"Champ " + position + " is null");
             loadPosition(position);
@@ -177,6 +193,7 @@ public class ChampionListAdapter extends BaseAdapter{
     private class ViewHolder{
         public TextView name;
         public TextView tag;
-        public NetworkImageView icon;
+        public VolleyImageView icon;
+        public ProgressBar pbar;
     }
 }

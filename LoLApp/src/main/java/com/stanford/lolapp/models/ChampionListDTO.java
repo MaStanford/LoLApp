@@ -2,6 +2,7 @@ package com.stanford.lolapp.models;
 
 import com.google.gson.Gson;
 import com.stanford.lolapp.exceptions.ChampionNotFoundException;
+import com.stanford.lolapp.util.Constants;
 
 
 import java.util.Arrays;
@@ -15,6 +16,7 @@ import java.util.Map;
 public class ChampionListDTO {
 
     public static final boolean PARAM_DATA_BY_ID = false;
+    private static final String TAG = "ChampionListDTO";
 
     //dataById flag in query sets this as mapped to ID, otherwise it maps to name
     Map<String, ChampionDTO> data;
@@ -122,14 +124,15 @@ public class ChampionListDTO {
      * @return
      */
     public ChampionDTO getChampionByPosition(int position) throws ChampionNotFoundException {
-        //This will just iterate through the keys of the map.  It is best to get the id from the id data structure and call the get by ID method
-        if(data.keySet().size() <= position && position >= 0){
-            String[] keyList = (String[]) data.keySet().toArray();
+        Constants.DEBUG_LOG(TAG, "getChampionByPosition pos: " + position);
+        if(data.keySet().size() >= position && position >= 0){
+            String[] keyList = new String[data.keySet().size()];
+            data.keySet().toArray(keyList);
             Arrays.sort(keyList);
             return data.get(keyList[position]);
         }else{
             //This means the position is out of the size of keys
-            throw new ChampionNotFoundException("Position is out of bounds of the keyset");
+            throw new ChampionNotFoundException("Position is out of bounds of the keySet");
         }
     }
 

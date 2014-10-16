@@ -23,6 +23,8 @@ import com.stanford.lolapp.models.ItemListDTO;
 import com.stanford.lolapp.network.ChampionTask;
 import com.stanford.lolapp.network.ItemTask;
 import com.stanford.lolapp.network.JSONBody;
+import com.stanford.lolapp.network.Requests;
+import com.stanford.lolapp.network.WebService;
 import com.stanford.lolapp.persistence.JSONFileUtil;
 import com.stanford.lolapp.util.Constants;
 
@@ -200,7 +202,6 @@ public class LoLAppService extends Service {
      * Pass the bundle along with the intent
      */
     private void fetchChampionsBackground(Bundle params, final int startID){
-        Constants.DEBUG_LOG(TAG, "fetchChamionIdsBackground : \n" + params.toString());
         fetchAllChampions(params,
                 null,
                 new Response.Listener<JSONObject>() {
@@ -293,7 +294,7 @@ public class LoLAppService extends Service {
                         mIntent.setAction(ACTION_FETCH_CHAMPIONIDS_DONE);
                         sendBroadcast(mIntent);
                         //Check if we stop service
-                        if(canDestroy()){
+                        if (canDestroy()) {
                             stopSelf(startID);
                         }
                     }
@@ -306,7 +307,7 @@ public class LoLAppService extends Service {
                         mIntent.setAction(ACTION_FETCH_CHAMPIONS_DONE_FAIL);
                         sendBroadcast(mIntent);
                         //Check if we stop service
-                        if(canDestroy()){
+                        if (canDestroy()) {
                             stopSelf(startID);
                         }
                     }
@@ -494,8 +495,13 @@ public class LoLAppService extends Service {
 
         //Make sure that the caller sets the proper bundle
         Bundle params = intent.getExtras();
-        //TODO: make a default params here in case someone forgets to put them
 
+        if(params == null){
+            params = new Bundle();
+            params.putString(WebService.PARAM_REQUIRED_LOCATION, LoLApp.getApp().getPreference(LoLApp.KEY_LOCATION, LoLApp.DEFAULT_LOCATION));
+            params.putString(WebService.PARAM_REQUIRED_LOCALE, LoLApp.getApp().getPreference(LoLApp.KEY_LOCALE, LoLApp.DEFAULT_LOCALE));
+            params.putString(Requests.GetAllChampionData.PARAM_DATA, LoLApp.getApp().getPreference(LoLApp.KEY_CHAMPDATA, LoLApp.DEFAULT_CHAMPDATA));
+        }
 
         //Check action to see what to do now
         switch(intent.getAction()){
